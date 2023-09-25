@@ -1,0 +1,69 @@
+* Enemy behaviour
+- Each enemy's [[behavior]] is a _dictionary_ of _lists_ of [[agent_commands]]
+- Should be possible to parse from a json file
+** Examples
+*** Broken examples from brainstorming phase:*
+- Enemy.basic(...).behavior = {
+  + _enemy.at(F=1, R=0)_ != player :: [([[step 1]], [[end]])]
+  + _enemy.at(F=1, R=0) == player_ :: [([[hit 1]], [[end]])]
+  + }
+- Enemy.fast(...).behavior = {
+  + _enemy.at(F=1, R=0)_ != player :: [([[step 2]], [[end]])]
+  + _enemy.at(F=1, R=0) == player_ :: [([[hit 1]], [[end]])]
+  + }
+*** This is the only good example so far:
+- Enemy.slow(...).behavior = {
+  + <<default>> :: [([[step 1]], )]
+  + <<battle>> :: [([[hit 1]], switch to [[default]])]
+  + <<stop>> :: [([[end]], switch to [[default]])]
+  + }
+*** Good example: 
+- Enemy.generic(...).behavior = {
+  + <<defalut>> :: |begin [[state observe]]|
+  + <<state observe>> :: | *execute* [[observe]] 1 0 *case*
+                         | [[type_empty]] *goto* 0 [[state empty]] *or*
+                         | [[type_player]] *goto* 0 [[state player]] *or*
+                         | [[type_enemy]] *goto* [[state enemy]]  |  *# Here goto means goto previous, goto 0 means go to start*
+  + <<state empty>> :: |execute [[step 1]]|begin [[state idle]]|
+  + <<state player>> :: |[[hit 1]]|begin [[state idle]]|
+  + <<state idle>> :: |[[end]]|begin [[state observe]]|
+  + <<state enemy>> :: |begin random [[state left]] [[state right]]|
+  + <<state walk>> :: |execute [[step 1]]|
+  + <<state left>> :: |execute [[turn 1]]|execute [[step 1]]|observe ???|
+  + <<state right>> :: |execute [[turn -1]]| ???|
+  + }
+
+* There is a concept of a <<state interpreter>> *# Allows to run code using state sequence*
+** This code can change the [[state pointer]] as well as any [[state counter]]
+* There is a concept of a <<state counter>> *# Allows cycling through the state sequence*
+** Just a index in the corresponding [[state sequence]] 
+* There is concept of a <<state pointer>>
+** starts at the [[beginning]] of the [[default state]]
+
+* agent_commands
+|--------------+-----------------------------+-----------------------|
+| Command      | Description                 | Examples              |
+|--------------+-----------------------------+-----------------------|
+| <<end>>      | end turn                    |                       |
+| <<wait>>     | do nothing                  |                       |
+| <<step x>>   | step forward x tiles        | <<step 1>> <<step 2>> |
+| <<hit x>>    | attack forward for x damage | <<hit 1>> <<hit 2>>   |
+| <<shield x>> | gain x shield               |                       |
+| <<heal x>>   | gain x hp                   |                       |
+| <<observe>>  | observe described space     |                       |
+|--------------+-----------------------------+-----------------------|  
+
+* Old
+** Old
+- _enemy.at(F=1, R=0) != player
+- _enemy.at(F=1, R=0) == player_  
+- Each enemy's behavior is a sequence of _pairs_ of [[agent_commands]]
+- The first element of this pair is _what to do wnen
+** "pointerup" fires on sprite level before global level
+** Use space for background image?
+** Change stop to shield
+** Add shield as resource
+** When an enemy "stops", he can activate other abilities than just [[wait]]
+  - It can be anything like [[heal n]], or [[shield n]]
+** Player abilities
+

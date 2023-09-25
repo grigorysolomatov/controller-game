@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="105mm"
+   height="105mm"
+   viewBox="0 0 105 105"
+   version="1.1"
+   id="svg5"
+   inkscape:version="1.1.2 (0a00cf5339, 2022-02-04)"
+   sodipodi:docname="controller.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#505050"
+     bordercolor="#eeeeee"
+     borderopacity="1"
+     inkscape:pageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:document-units="mm"
+     showgrid="false"
+     inkscape:zoom="0.50788326"
+     inkscape:cx="257.93329"
+     inkscape:cy="391.82233"
+     inkscape:window-width="956"
+     inkscape:window-height="1041"
+     inkscape:window-x="960"
+     inkscape:window-y="18"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs2">
+    <linearGradient
+       id="linearGradient1135"
+       inkscape:swatch="solid">
+      <stop
+         style="stop-color:#ffffff;stop-opacity:1;"
+         offset="0"
+         id="stop1133" />
+    </linearGradient>
+  </defs>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(29.117081,-42.765404)">
+    <rect
+       style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:10;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect846-3"
+       width="80"
+       height="80"
+       x="-16.617081"
+       y="55.265404"
+       rx="38.095238"
+       ry="38.095238" />
+    <g
+       id="g1160"
+       transform="rotate(45,23.382919,95.265404)" />
+    <g
+       id="g1594">
+      <rect
+         style="fill:#000000;stroke-width:10;stroke-miterlimit:4;stroke-dasharray:none;fill-opacity:1"
+         id="rect1136"
+         width="10"
+         height="80"
+         x="78.897034"
+         y="10.828592"
+         transform="rotate(45)" />
+    </g>
+    <rect
+       style="fill:#000000;stroke-width:10;stroke-miterlimit:4;stroke-dasharray:none;fill-opacity:1"
+       id="rect1136-3"
+       width="10"
+       height="80"
+       x="45.828594"
+       y="-123.89703"
+       transform="rotate(135)" />
+  </g>
+</svg>

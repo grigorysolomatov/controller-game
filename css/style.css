@@ -1,0 +1,8 @@
+body {
+    background-color: #202020;
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    justify-content: center; /* Center horizontally */
+    align-items: center;     /* Center vertically */
+}
