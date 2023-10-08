@@ -7,13 +7,111 @@ const NOTES = [
     "All scene changes are seamless. Use illusion of panning, as if everything is an a single plane?",
 ];
 
+function get_menu_config() {
+    const options = [
+        {"name": "Acts"},
+        {"name": "Controls"},
+        {"name": "C"},
+        {"name": "D"},
+        {"name": "E"},
+    ];
+    const options_board = {
+        nrows: 5,
+        ncols: 1,
+        step: 105,
+        tile: {
+            image: "tile",
+            width: 100,
+            tint: 0xffffff,
+            depth: 0,
+            state: {
+                time: {
+                    scale: 500,
+                    tint: 200,
+                },
+                map: {
+                    "default": {
+                        scale: 1.0,
+                        tint: 0xffffff,
+                    },
+                    "hover": {
+                        scale: 1.1,
+                        tint: 0xffff00,
+                    },
+                }
+            }
+        },
+    };
+    const config = {
+        window: {
+            width: 1900,
+            height: 900,
+            color: 0x101010,
+        },
+        time: {
+            select: 1000,
+        },
+        options: options,
+        options_board: options_board,
+    };
+    return config;
+}
+function get_controls_config() {
+    const options = [
+        {"name": "A"},
+        {"name": "B"},
+        {"name": "C"},
+        {"name": "D"},
+        {"name": "E"},
+    ];
+    const options_board = {
+        nrows: 5,
+        ncols: 1,
+        step: 105,
+        tile: {
+            image: "tile",
+            width: 100,
+            tint: 0xffffff,
+            depth: 0,
+            state: {
+                time: {
+                    scale: 500,
+                    tint: 200,
+                },
+                map: {
+                    "default": {
+                        scale: 1.0,
+                        tint: 0xffffff,
+                    },
+                    "hover": {
+                        scale: 1.1,
+                        tint: 0xffff00,
+                    },
+                }
+            }
+        },
+    };
+    const config = {
+        window: {
+            width: 1900,
+            height: 900,
+            color: 0x101010,
+        },
+        time: {
+            select: 1000,
+        },
+        options: options,
+        options_board: options_board,
+    };
+    return config;
+}
 function get_act_config() {
     const acts = [
         {
-            name: "Basics",
+            name: "Dots",
             levels: [
                 {
-                    name: "Dot",
+                    name: "One",
                     layout: [
                         [0, 0, 0, 0, 0, 0, 0],
                         [0, 0, 0, 0, 0, 0, 0],
@@ -23,342 +121,342 @@ function get_act_config() {
                         [0, 0, 0, 0, 0, 0, 0],
                         [0, 0, 0, 0, 0, 0, 0],
                     ],
-                    labels: ["white", "green"],
-                }, // Dot
+                    labels: ["black", "white"],
+                }, // One
                 {
-                    name: "Line",
+                    name: "Four",
                     layout: [
                         [0, 0, 0, 0, 0, 0, 0],
                         [0, 0, 0, 0, 0, 0, 0],
-                        [0, 0, 0, 1, 0, 0, 0],
-                        [0, 0, 0, 1, 0, 0, 0],
-                        [0, 0, 0, 1, 0, 0, 0],
+                        [0, 0, 1, 0, 1, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 1, 0, 1, 0, 0],
                         [0, 0, 0, 0, 0, 0, 0],
                         [0, 0, 0, 0, 0, 0, 0],
                     ],
-                    labels: ["white", "green"],
-                }, // Line
+                    labels: ["black", "white"],
+                }, // Four
                 {
-                    name: "Small box",
+                    name: "Nine",
                     layout: [
                         [0, 0, 0, 0, 0, 0, 0],
+                        [0, 1, 0, 1, 0, 1, 0],
                         [0, 0, 0, 0, 0, 0, 0],
-                        [0, 0, 1, 1, 1, 0, 0],
-                        [0, 0, 1, 0, 1, 0, 0],
-                        [0, 0, 1, 1, 1, 0, 0],
+                        [0, 1, 0, 1, 0, 1, 0],
                         [0, 0, 0, 0, 0, 0, 0],
+                        [0, 1, 0, 1, 0, 1, 0],
                         [0, 0, 0, 0, 0, 0, 0],
                     ],
-                    labels: ["white", "green"],
-                }, // Small box
+                    labels: ["black", "white"],
+                }, // Nine
                 {
-                    name: "Rails",
+                    name: "Sixteen",
                     layout: [
-                        [0, 0, 1, 0, 1, 0, 0],
-                        [0, 0, 1, 0, 1, 0, 0],
-                        [0, 0, 1, 0, 1, 0, 0],
-                        [0, 0, 1, 0, 1, 0, 0],
-                        [0, 0, 1, 0, 1, 0, 0],
-                        [0, 0, 1, 0, 1, 0, 0],
-                        [0, 0, 1, 0, 1, 0, 0],
+                        [1, 0, 1, 0, 1, 0, 1],
+                        [0, 0, 0, 0, 0, 0, 0],
+                        [1, 0, 1, 0, 1, 0, 1],
+                        [0, 0, 0, 0, 0, 0, 0],
+                        [1, 0, 1, 0, 1, 0, 1],
+                        [0, 0, 0, 0, 0, 0, 0],
+                        [1, 0, 1, 0, 1, 0, 1],
                     ],
-                    labels: ["white", "red"],
-                }, // Rails
+                    labels: ["black", "white"],
+                }, // Sixteen
                 {
-                    name: "Large box",
+                    name: "Bishop",
                     layout: [
-                        [0, 0, 0, 0, 0, 0 , 0],
-                        [0, 1, 1, 1, 1, 1 , 0],
-                        [0, 1, 0, 0, 0, 1 , 0],
-                        [0, 1, 0, 0, 0, 1 , 0],
-                        [0, 1, 0, 0, 0, 1 , 0],
-                        [0, 1, 1, 1, 1, 1 , 0],
-                        [0, 0, 0, 0, 0, 0 , 0],
+                        [0, 1, 0, 1, 0, 1, 0],
+                        [1, 0, 1, 0, 1, 0, 1],
+                        [0, 1, 0, 1, 0, 1, 0],
+                        [1, 0, 1, 1, 1, 0, 1],
+                        [0, 1, 0, 1, 0, 1, 0],
+                        [1, 0, 1, 0, 1, 0, 1],
+                        [0, 1, 0, 1, 0, 1, 0],
                     ],
-                    labels: ["white", "green"],
-                }, // Large box
+                    labels: ["black", "white"],
+                }, // Chess
             ],
-        }, // Basics
+        }, // Dots
         {
             name: "Lines",
             levels: [
                 {
-                    name: "Large dotted box",
+                    name: "One",
                     layout: [
-                        [0, 0, 0, 0, 0, 0 , 0],
-                        [0, 1, 1, 1, 1, 1 , 0],
-                        [0, 1, 0, 0, 0, 1 , 0],
-                        [0, 1, 0, 1, 0, 1 , 0],
-                        [0, 1, 0, 0, 0, 1 , 0],
-                        [0, 1, 1, 1, 1, 1 , 0],
-                        [0, 0, 0, 0, 0, 0 , 0],
+                        [0, 0, 0, 1, 0, 0, 0],
+                        [0, 0, 0, 1, 0, 0, 0],
+                        [0, 0, 0, 1, 0, 0, 0],
+                        [0, 0, 0, 1, 0, 0, 0],
+                        [0, 0, 0, 1, 0, 0, 0],
+                        [0, 0, 0, 1, 0, 0, 0],
+                        [0, 0, 0, 1, 0, 0, 0],
                     ],
-                    labels: ["white", "green"],
-                }, // Large dotted box
+                    labels: ["black", "white"],
+                }, // One
                 {
-                    name: "Window",
+                    name: "Two",
                     layout: [
-                        [0, 0, 0, 0, 0, 0 , 0],
-                        [0, 1, 1, 1, 1, 1 , 0],
-                        [0, 1, 0, 1, 0, 1 , 0],
-                        [0, 1, 1, 1, 1, 1 , 0],
-                        [0, 1, 0, 1, 0, 1 , 0],
-                        [0, 1, 1, 1, 1, 1 , 0],
-                        [0, 0, 0, 0, 0, 0 , 0],
+                        [0, 0, 1, 0, 1, 0, 0],
+                        [0, 0, 1, 0, 1, 0, 0],
+                        [0, 0, 1, 0, 1, 0, 0],
+                        [0, 0, 1, 0, 1, 0, 0],
+                        [0, 0, 1, 0, 1, 0, 0],
+                        [0, 0, 1, 0, 1, 0, 0],
+                        [0, 0, 1, 0, 1, 0, 0],
                     ],
-                    labels: ["white", "green"],
-                }, // Window
+                    labels: ["black", "white"],
+                }, // Two
                 {
-                    name: "Large window",
+                    name: "Three",
                     layout: [
-                        [1, 1, 1, 1, 1, 1 , 1],
-                        [1, 0, 0, 1, 0, 0 , 1],
-                        [1, 0, 0, 1, 0, 0 , 1],
-                        [1, 1, 1, 1, 1, 1 , 1],
-                        [1, 0, 0, 1, 0, 0 , 1],
-                        [1, 0, 0, 1, 0, 0 , 1],
-                        [1, 1, 1, 1, 1, 1 , 1],
+                        [0, 1, 0, 1, 0, 1, 0],
+                        [0, 1, 0, 1, 0, 1, 0],
+                        [0, 1, 0, 1, 0, 1, 0],
+                        [0, 1, 0, 1, 0, 1, 0],
+                        [0, 1, 0, 1, 0, 1, 0],
+                        [0, 1, 0, 1, 0, 1, 0],
+                        [0, 1, 0, 1, 0, 1, 0],
                     ],
-                    labels: ["white", "green"],
-                }, // Large window
+                    labels: ["black", "white"],
+                }, // Three
                 {
-                    name: "Jenga",
+                    name: "Four",
                     layout: [
-                        [0, 0, 1, 1, 1, 0 , 0],
-                        [0, 0, 1, 0, 1, 0 , 0],
-                        [0, 0, 1, 1, 1, 0 , 0],
-                        [0, 0, 1, 0, 1, 0 , 0],
-                        [0, 0, 1, 1, 1, 0 , 0],
-                        [0, 0, 1, 0, 1, 0 , 0],
-                        [0, 0, 1, 1, 1, 0 , 0],
+                        [1, 0, 1, 0, 1, 0, 1],
+                        [1, 0, 1, 0, 1, 0, 1],
+                        [1, 0, 1, 0, 1, 0, 1],
+                        [1, 0, 1, 0, 1, 0, 1],
+                        [1, 0, 1, 0, 1, 0, 1],
+                        [1, 0, 1, 0, 1, 0, 1],
+                        [1, 0, 1, 0, 1, 0, 1],
                     ],
-                    labels: ["white", "green"],
-                }, // Jenga
+                    labels: ["black", "white"],
+                }, // Four
                 {
-                    name: "Tick tack toe",
+                    name: "Sixteen",
                     layout: [
-                        [0, 0, 1, 0, 1, 0 , 0],
-                        [0, 0, 1, 0, 1, 0 , 0],
-                        [1, 1, 1, 1, 1, 1 , 1],
-                        [0, 0, 1, 0, 1, 0 , 0],
-                        [1, 1, 1, 1, 1, 1 , 1],
-                        [0, 0, 1, 0, 1, 0 , 0],
-                        [0, 0, 1, 0, 1, 0 , 0],
+                        [1, 1, 1, 1, 1, 1, 1],
+                        [1, 0, 1, 0, 1, 0, 1],
+                        [1, 1, 1, 1, 1, 1, 1],
+                        [1, 0, 1, 0, 1, 0, 1],
+                        [1, 1, 1, 1, 1, 1, 1],
+                        [1, 0, 1, 0, 1, 0, 1],
+                        [1, 1, 1, 1, 1, 1, 1],
                     ],
-                    labels: ["white", "green"],
-                }, // Tick tack toe
+                    labels: ["black", "white"],
+                }, // Sixteen
             ],
         }, // Lines
         {
             name: "Boxes",
             levels: [
                 {
-                    name: "Large dotted box",
+                    name: "One",
+                    layout: [
+                        [0, 0, 0, 0, 0, 0 , 0],
+                        [0, 0, 0, 0, 0, 0 , 0],
+                        [0, 0, 1, 1, 1, 0 , 0],
+                        [0, 0, 1, 0, 1, 0 , 0],
+                        [0, 0, 1, 1, 1, 0 , 0],
+                        [0, 0, 0, 0, 0, 0 , 0],
+                        [0, 0, 0, 0, 0, 0 , 0],
+                    ],
+                    labels: ["black", "white"],
+                }, // One
+                {
+                    name: "Two",
+                    layout: [
+                        [0, 0, 0, 0, 0, 0 , 0],
+                        [0, 0, 1, 1, 1, 0 , 0],
+                        [0, 0, 1, 0, 1, 0 , 0],
+                        [0, 0, 1, 1, 1, 0 , 0],
+                        [0, 0, 1, 0, 1, 0 , 0],
+                        [0, 0, 1, 1, 1, 0 , 0],
+                        [0, 0, 0, 0, 0, 0 , 0],
+                    ],
+                    labels: ["black", "white"],
+                }, // Two
+                {
+                    name: "Three",
+                    layout: [
+                        [0, 0, 1, 1, 1, 0 , 0],
+                        [0, 0, 1, 0, 1, 0 , 0],
+                        [0, 0, 1, 1, 1, 0 , 0],
+                        [0, 0, 1, 0, 1, 0 , 0],
+                        [0, 0, 1, 1, 1, 0 , 0],
+                        [0, 0, 1, 0, 1, 0 , 0],
+                        [0, 0, 1, 1, 1, 0 , 0],
+                    ],
+                    labels: ["black", "white"],
+                }, // Three
+                {
+                    name: "Four",
                     layout: [
                         [0, 0, 0, 0, 0, 0 , 0],
                         [0, 1, 1, 1, 1, 1 , 0],
-                        [0, 1, 0, 0, 0, 1 , 0],
                         [0, 1, 0, 1, 0, 1 , 0],
-                        [0, 1, 0, 0, 0, 1 , 0],
-                        [0, 1, 1, 1, 1, 1 , 0],
-                        [0, 0, 0, 0, 0, 0 , 0],
-                    ],
-                    labels: ["white", "green"],
-                }, // Large dotted box
-                {
-                    name: "Window",
-                    layout: [
-                        [0, 0, 0, 0, 0, 0 , 0],
-                        [0, 1, 1, 1, 1, 1 , 0],
-                        [0, 1, 0, 1, 0, 1 , 0],
                         [0, 1, 1, 1, 1, 1 , 0],
                         [0, 1, 0, 1, 0, 1 , 0],
                         [0, 1, 1, 1, 1, 1 , 0],
                         [0, 0, 0, 0, 0, 0 , 0],
                     ],
-                    labels: ["white", "green"],
-                }, // Window
+                    labels: ["black", "white"],
+                }, // Four
                 {
-                    name: "Large window",
+                    name: "Inside",
                     layout: [
-                        [1, 1, 1, 1, 1, 1 , 1],
-                        [1, 0, 0, 1, 0, 0 , 1],
-                        [1, 0, 0, 1, 0, 0 , 1],
-                        [1, 1, 1, 1, 1, 1 , 1],
-                        [1, 0, 0, 1, 0, 0 , 1],
-                        [1, 0, 0, 1, 0, 0 , 1],
-                        [1, 1, 1, 1, 1, 1 , 1],
+                        [1, 1, 1, 1, 1, 1, 1],
+                        [1, 0, 0, 0, 0, 0, 1],
+                        [1, 0, 1, 1, 1, 0, 1],
+                        [1, 0, 1, 0, 1, 0, 1],
+                        [1, 0, 1, 1, 1, 0, 1],
+                        [1, 0, 0, 0, 0, 0, 1],
+                        [1, 1, 1, 1, 1, 1, 1],
                     ],
-                    labels: ["white", "green"],
-                }, // Large window
-                {
-                    name: "Jenga",
-                    layout: [
-                        [0, 0, 1, 1, 1, 0 , 0],
-                        [0, 0, 1, 0, 1, 0 , 0],
-                        [0, 0, 1, 1, 1, 0 , 0],
-                        [0, 0, 1, 0, 1, 0 , 0],
-                        [0, 0, 1, 1, 1, 0 , 0],
-                        [0, 0, 1, 0, 1, 0 , 0],
-                        [0, 0, 1, 1, 1, 0 , 0],
-                    ],
-                    labels: ["white", "green"],
-                }, // Jenga
-                {
-                    name: "Tick tack toe",
-                    layout: [
-                        [0, 0, 1, 0, 1, 0 , 0],
-                        [0, 0, 1, 0, 1, 0 , 0],
-                        [1, 1, 1, 1, 1, 1 , 1],
-                        [0, 0, 1, 0, 1, 0 , 0],
-                        [1, 1, 1, 1, 1, 1 , 1],
-                        [0, 0, 1, 0, 1, 0 , 0],
-                        [0, 0, 1, 0, 1, 0 , 0],
-                    ],
-                    labels: ["white", "green"],
-                }, // Tick tack toe
+                    labels: ["black", "white"],
+                }, // Inside
             ],
         }, // Boxes
-        {
-            name: "Colors",
-            levels: [
-                {
-                    name: "Large dotted box",
-                    layout: [
-                        [0, 0, 0, 0, 0, 0 , 0],
-                        [0, 1, 1, 1, 1, 1 , 0],
-                        [0, 1, 0, 0, 0, 1 , 0],
-                        [0, 1, 0, 1, 0, 1 , 0],
-                        [0, 1, 0, 0, 0, 1 , 0],
-                        [0, 1, 1, 1, 1, 1 , 0],
-                        [0, 0, 0, 0, 0, 0 , 0],
-                    ],
-                    labels: ["white", "green"],
-                }, // Large dotted box
-                {
-                    name: "Window",
-                    layout: [
-                        [0, 0, 0, 0, 0, 0 , 0],
-                        [0, 1, 1, 1, 1, 1 , 0],
-                        [0, 1, 0, 1, 0, 1 , 0],
-                        [0, 1, 1, 1, 1, 1 , 0],
-                        [0, 1, 0, 1, 0, 1 , 0],
-                        [0, 1, 1, 1, 1, 1 , 0],
-                        [0, 0, 0, 0, 0, 0 , 0],
-                    ],
-                    labels: ["white", "green"],
-                }, // Window
-                {
-                    name: "Large window",
-                    layout: [
-                        [1, 1, 1, 1, 1, 1 , 1],
-                        [1, 0, 0, 1, 0, 0 , 1],
-                        [1, 0, 0, 1, 0, 0 , 1],
-                        [1, 1, 1, 1, 1, 1 , 1],
-                        [1, 0, 0, 1, 0, 0 , 1],
-                        [1, 0, 0, 1, 0, 0 , 1],
-                        [1, 1, 1, 1, 1, 1 , 1],
-                    ],
-                    labels: ["white", "green"],
-                }, // Large window
-                {
-                    name: "Jenga",
-                    layout: [
-                        [0, 0, 1, 1, 1, 0 , 0],
-                        [0, 0, 1, 0, 1, 0 , 0],
-                        [0, 0, 1, 1, 1, 0 , 0],
-                        [0, 0, 1, 0, 1, 0 , 0],
-                        [0, 0, 1, 1, 1, 0 , 0],
-                        [0, 0, 1, 0, 1, 0 , 0],
-                        [0, 0, 1, 1, 1, 0 , 0],
-                    ],
-                    labels: ["white", "green"],
-                }, // Jenga
-                {
-                    name: "Tick tack toe",
-                    layout: [
-                        [0, 0, 1, 0, 1, 0 , 0],
-                        [0, 0, 1, 0, 1, 0 , 0],
-                        [1, 1, 1, 1, 1, 1 , 1],
-                        [0, 0, 1, 0, 1, 0 , 0],
-                        [1, 1, 1, 1, 1, 1 , 1],
-                        [0, 0, 1, 0, 1, 0 , 0],
-                        [0, 0, 1, 0, 1, 0 , 0],
-                    ],
-                    labels: ["white", "green"],
-                }, // Tick tack toe
-            ],
-        }, // Colors
         {
             name: "Flags",
             levels: [
                 {
-                    name: "Large dotted box",
+                    name: "France",
                     layout: [
-                        [0, 0, 0, 0, 0, 0 , 0],
-                        [0, 1, 1, 1, 1, 1 , 0],
-                        [0, 1, 0, 0, 0, 1 , 0],
-                        [0, 1, 0, 1, 0, 1 , 0],
-                        [0, 1, 0, 0, 0, 1 , 0],
-                        [0, 1, 1, 1, 1, 1 , 0],
-                        [0, 0, 0, 0, 0, 0 , 0],
+                        [0, 0, 0, 1, 1, 1, 2, 2, 2],
+                        [0, 0, 0, 1, 1, 1, 2, 2, 2],
+                        [0, 0, 0, 1, 1, 1, 2, 2, 2],
+                        [0, 0, 0, 1, 1, 1, 2, 2, 2],
+                        [0, 0, 0, 1, 1, 1, 2, 2, 2],
+                        [0, 0, 0, 1, 1, 1, 2, 2, 2],
+                        [0, 0, 0, 1, 1, 1, 2, 2, 2],
                     ],
-                    labels: ["white", "green"],
-                }, // Large dotted box
+                    labels: ["blue", "white", "red"],
+                }, // France
                 {
-                    name: "Window",
+                    name: "Iceland",
                     layout: [
-                        [0, 0, 0, 0, 0, 0 , 0],
-                        [0, 1, 1, 1, 1, 1 , 0],
-                        [0, 1, 0, 1, 0, 1 , 0],
-                        [0, 1, 1, 1, 1, 1 , 0],
-                        [0, 1, 0, 1, 0, 1 , 0],
-                        [0, 1, 1, 1, 1, 1 , 0],
-                        [0, 0, 0, 0, 0, 0 , 0],
+                        [0, 0, 1, 2, 1, 0, 0, 0, 0],
+                        [0, 0, 1, 2, 1, 0, 0, 0, 0],
+                        [1, 1, 1, 2, 1, 1, 1, 1, 1],
+                        [2, 2, 2, 2, 2, 2, 2, 2, 2],
+                        [1, 1, 1, 2, 1, 1, 1, 1, 1],
+                        [0, 0, 1, 2, 1, 0, 0, 0, 0],
+                        [0, 0, 1, 2, 1, 0, 0, 0, 0],
                     ],
-                    labels: ["white", "green"],
-                }, // Window
+                    labels: ["blue", "white", "red"],
+                }, // Iceland
                 {
-                    name: "Large window",
+                    name: "Canada",
                     layout: [
-                        [1, 1, 1, 1, 1, 1 , 1],
-                        [1, 0, 0, 1, 0, 0 , 1],
-                        [1, 0, 0, 1, 0, 0 , 1],
-                        [1, 1, 1, 1, 1, 1 , 1],
-                        [1, 0, 0, 1, 0, 0 , 1],
-                        [1, 0, 0, 1, 0, 0 , 1],
-                        [1, 1, 1, 1, 1, 1 , 1],
+                        [1, 1, 0, 0, 0, 0, 0, 1, 1],
+                        [1, 1, 0, 0, 0, 0, 0, 1, 1],
+                        [1, 1, 0, 1, 1, 1, 0, 1, 1],
+                        [1, 1, 0, 1, 1, 1, 0, 1, 1],
+                        [1, 1, 0, 1, 1, 1, 0, 1, 1],
+                        [1, 1, 0, 0, 1, 0, 0, 1, 1],
+                        [1, 1, 0, 0, 0, 0, 0, 1, 1],
                     ],
-                    labels: ["white", "green"],
-                }, // Large window
+                    labels: ["red", "white"],
+                }, // Canada
                 {
-                    name: "Jenga",
+                    name: "Thailand",
                     layout: [
-                        [0, 0, 1, 1, 1, 0 , 0],
-                        [0, 0, 1, 0, 1, 0 , 0],
-                        [0, 0, 1, 1, 1, 0 , 0],
-                        [0, 0, 1, 0, 1, 0 , 0],
-                        [0, 0, 1, 1, 1, 0 , 0],
-                        [0, 0, 1, 0, 1, 0 , 0],
-                        [0, 0, 1, 1, 1, 0 , 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                        [2, 2, 2, 2, 2, 2, 2, 2, 2],
+                        [2, 2, 2, 2, 2, 2, 2, 2, 2],
+                        [2, 2, 2, 2, 2, 2, 2, 2, 2],
+                        [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0],
                     ],
-                    labels: ["white", "green"],
-                }, // Jenga
+                    labels: ["red", "white", "blue"],
+                }, // Thailand
                 {
-                    name: "Tick tack toe",
+                    name: "Argentina",
                     layout: [
-                        [0, 0, 1, 0, 1, 0 , 0],
-                        [0, 0, 1, 0, 1, 0 , 0],
-                        [1, 1, 1, 1, 1, 1 , 1],
-                        [0, 0, 1, 0, 1, 0 , 0],
-                        [1, 1, 1, 1, 1, 1 , 1],
-                        [0, 0, 1, 0, 1, 0 , 0],
-                        [0, 0, 1, 0, 1, 0 , 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                        [1, 1, 1, 1, 2, 1, 1, 1, 1],
+                        [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0],
                     ],
-                    labels: ["white", "green"],
-                }, // Tick tack toe
+                    labels: ["blue", "white", "yellow"],
+                }, // Argentina
             ],
         }, // Flags
+        {
+            name: "Art",
+            levels: [
+                {
+                    name: "Recticle",
+                    layout: [
+                        [0, 0, 0, 1, 0, 0, 0],
+                        [0, 0, 0, 1, 0, 0, 0],
+                        [0, 0, 1, 1, 1, 0, 0],
+                        [1, 1, 1, 0, 1, 1, 1],
+                        [0, 0, 1, 1, 1, 0, 0],
+                        [0, 0, 0, 1, 0, 0, 0],
+                        [0, 0, 0, 1, 0, 0, 0],
+                    ],
+                    labels: ["black", "white"],
+                }, // Recticle
+                {
+                    name: "Rainbow",
+                    layout: [
+                        [0, 0, 0, 0, 0, 0, 0],
+                        [1, 1, 1, 1, 1, 1, 1],
+                        [2, 2, 2, 2, 2, 2, 2],
+                        [3, 3, 3, 3, 3, 3, 3],
+                        [4, 4, 4, 4, 4, 4, 4],
+                        [5, 5, 5, 5, 5, 5, 5],
+                        [6, 6, 6, 6, 6, 6, 6],
+                    ],
+                    labels: ["red", "orange", "yellow", "green", "blue", "indigo", "violet"],
+                }, // Rainbow
+                {
+                    name: "Apple",
+                    layout: [
+                        [0, 0, 0, 0, 0, 0, 0],
+                        [0, 0, 0, 3, 2, 0, 0],
+                        [0, 0, 0, 3, 0, 0, 0],
+                        [0, 0, 1, 1, 1, 0, 0],
+                        [0, 0, 1, 1, 1, 0, 0],
+                        [0, 0, 1, 1, 1, 0, 0],
+                        [0, 0, 0, 0, 0, 0, 0],
+                    ],
+                    labels: ["white", "red", "green", "black"],
+                }, // Apple
+                {
+                    name: "Pac-Man",
+                    layout: [
+                        [0, 0, 1, 1, 1, 0, 0],
+                        [0, 1, 2, 2, 2, 1, 0],
+                        [1, 2, 2, 2, 1, 0, 0],
+                        [1, 2, 2, 1, 0, 0, 0],
+                        [1, 2, 2, 2, 1, 0, 0],
+                        [0, 1, 2, 2, 2, 1, 0],
+                        [0, 0, 1, 1, 1, 0, 0],
+                    ],
+                    labels: ["white", "black", "yellow"],
+                }, // Pac-Man
+                {
+                    name: "Pi",
+                    layout: [
+                        [0, 0, 0, 0, 0, 0, 0],
+                        [1, 1, 1, 1, 1, 1, 1],
+                        [1, 0, 0, 0, 0, 0, 0],
+                        [1, 0, 1, 0, 1, 0, 0],
+                        [0, 0, 1, 0, 1, 0, 0],
+                        [0, 1, 1, 0, 1, 1, 0],
+                        [0, 0, 0, 0, 0, 0, 0],
+                    ],
+                    labels: ["black", "white"],
+                }, // ???
+            ],
+        }, // Art
     ];
     const act_board = {
         nrows: 5,
@@ -394,51 +492,10 @@ function get_act_config() {
             color: 0x101010,
         },
         time: {
-            select: 1500,
+            select: 1000,
         },
         options: acts,
         options_board: act_board,
-    };
-    return config;
-}
-function get_level_config_old({act_idx}) {
-    const act_config = get_act_config();
-    const levels = act_config.options[act_idx].levels;
-    const level_board = {
-        nrows: 5,
-        ncols: 1,
-        step: 105,
-        tile: {
-            image: "tile",
-            width: 100,
-            tint: 0xffffff,
-            depth: 0,
-            state: {
-                time: {
-                    scale: 500,
-                    tint: 200,
-                },
-                map: {
-                    "default": {
-                        scale: 1.0,
-                        tint: 0xffffff,
-                    },
-                    "hover": {
-                        scale: 1.1,
-                        tint: 0xff00ff,
-                    },
-                }
-            }
-        },
-    };
-    const config = {
-        window: {
-            width: 1900,
-            height: 900,
-            color: 0x101010,
-        },
-        levels: levels,
-        level_board: level_board,
     };
     return config;
 }
@@ -466,7 +523,7 @@ function get_level_config({act_idx}) {
                     },
                     "hover": {
                         scale: 1.1,
-                        tint: 0xff00ff,
+                        tint: 0xffff00,
                     },
                 }
             }
@@ -479,14 +536,14 @@ function get_level_config({act_idx}) {
             color: 0x101010,
         },
         time: {
-            select: 1500,
+            select: 1000,
         },
         options: levels,
         options_board: level_board,
     };
     return config;
 }
-function get_config({act_idx, level_idx}) {
+function get_game_config({act_idx, level_idx}) {
     const levels = get_level_config({act_idx: act_idx}).options;
     const tile_board = {
         nrows: levels[level_idx].layout.length,
@@ -512,18 +569,42 @@ function get_config({act_idx, level_idx}) {
                         scale: 1.05,
                         tint: 0xffffff,
                     },
-                    "green": {
+                    "black": {
                         scale: 1.05,
-                        tint: 0x00ff00,
-                    },
-                    "red": {
-                        scale: 1.05,
-                        tint: 0xff0000,
+                        tint: 0x303030,
                     },
                     "cursor": {
                         scale: 1.1,
                         tint: 0xcccc00,
                     },
+                    "red": {
+                        scale: 1.05,
+                        tint: 0xff0000,
+                    },
+                    "orange": {
+                        scale: 1.05,
+                        tint: 0xffaa00,
+                    },
+                    "yellow": {
+                        scale: 1.1,
+                        tint: 0xffff00,
+                    },
+                    "green": {
+                        scale: 1.05,
+                        tint: 0x00ff00,
+                    },                    
+                    "blue": {
+                        scale: 1.05,
+                        tint: 0x0000ff,
+                    },
+                    "indigo": {
+                        scale: 1.05,
+                        tint: 0xaa00ff,
+                    },
+                    "violet": {
+                        scale: 1.05,
+                        tint: 0xff00ff,
+                    },                    
                 }
             }
         },
@@ -548,23 +629,43 @@ function get_config({act_idx, level_idx}) {
                         scale: 1.0,
                         tint: 0xffffff,
                     },
+                    "black": {
+                        scale: 1.0,
+                        tint: 0x303030,
+                    },
                     "hover": {
                         scale: 1.1,
                         tint: 0xffff88,
                     },
                     "red": {
                         scale: 1.0,
-                        tint: 0xcc0000,
+                        tint: 0xff0000,
+                    },
+                    "orange": {
+                        scale: 1.0,
+                        tint: 0xffaa00,
+                    },
+                    "yellow": {
+                        scale: 1.0,
+                        tint: 0xffff00,
                     },
                     "green": {
                         scale: 1.0,
-                        tint: 0x00cc00,
+                        tint: 0x00ff00,
                     },
                     "blue": {
                         scale: 1.0,
-                        tint: 0x0000cc,
+                        tint: 0x0000ff,
                     },
-                }
+                    "indigo": {
+                        scale: 1.0,
+                        tint: 0xaa00ff,
+                    },
+                    "violet": {
+                        scale: 1.0,
+                        tint: 0xff00ff,
+                    },
+                },
             }
         },
     };
@@ -575,7 +676,7 @@ function get_config({act_idx, level_idx}) {
             color: 0x101010,
         },
         time: {
-            select: 1500,
+            select: 1000,
         },
         tile_board: tile_board,
         ball_board: ball_board,
@@ -587,7 +688,7 @@ class LoadingScene extends Phaser.Scene {
         super({ key: "LoadingScene" });
     }
     preload() {
-        this.show_loading();
+        //this.show_loading();
 
         this.load.image("tile", "assets/images/tile.svg");
         this.load.image("agent", "assets/images/agent.svg");
@@ -612,21 +713,23 @@ class LoadingScene extends Phaser.Scene {
         ).setOrigin(0.5);
     }
     create() {
-        //this.scene.start("GameScene");
-        //this.scene.start("LevelScene");
-        //this.scene.start("ActScene");
-        this.scene.start("NewActScene", {
-            config: get_act_config(),
-            metatext: "Acts",
+        this.scene.start("MenuScene", {
+            config: get_menu_config(),
+            metatext: "Menu",
         });
+        //this.scene.start("ActScene", {
+        //    config: get_act_config(),
+        //    metatext: "Acts",
+        //});
     }
 }
-class OptionScene extends Phaser.Scene {
-    init({config, metatext, option_idx}) {
-        this.init_args = {config, metatext, option_idx};
+class BaseScene extends Phaser.Scene {
+    init({config, metatext, on_release, parent_option_idx}) {
+        this.init_args = {config, metatext, on_release};
     }
     create() {
-        const config = this.init_args.config;
+        this.config = this.init_args.config;
+        const config = this.config;
 
         // Tween screen cover ..................................................       
         const screen_cover = new ScreenCover({
@@ -642,8 +745,7 @@ class OptionScene extends Phaser.Scene {
             ease: "Quint.Out",
             duration: config.time.select,
         });
-        // Make metatext .......................................................
-        
+        // Make metatext .......................................................        
         this.metatext = this.add.text(
             0.25*config.window.width, // TODO: fix this hardcoding
             0.5*config.window.height, // TODO: fix this hardcoding
@@ -653,6 +755,35 @@ class OptionScene extends Phaser.Scene {
                 fill: "#ffffff",
             }
         ).setOrigin(0.5).setDepth(2);
+
+        this.input.keyboard.on("keyup_ESC", (e) => {
+            if (!this.init_args.on_release) {return;}
+            const screen_cover = new ScreenCover({
+                x: config.window.width*0.5,
+                y: config.window.height*0.5,
+                scene: this,
+            }).setDepth(1);
+            screen_cover.setTint(config.window.color);
+            screen_cover.setAlpha(0.0);
+            screen_cover.tween({
+                targets: screen_cover,
+                alpha: 1.0,
+                ease: "Quint.InOut",
+                duration: config.time.select*0.5,
+                onComplete: ()  => {
+                    this.init_args.on_release(this);
+                },
+            });            
+        });
+    }
+}
+class OptionScene extends BaseScene {
+    init({config, metatext, option_idx, on_release, parent_option_idx}) {
+        this.init_args = {config, metatext, option_idx, on_release, parent_option_idx};
+    }
+    create() {
+        super.create();        
+        const config = this.config;       
         const metatext = this.metatext;
         // Make options board ..................................................
         const options_board = new Board({
@@ -661,8 +792,7 @@ class OptionScene extends Phaser.Scene {
             y: config.window.height*0.5,
             config: config.options_board,
         });
-        // .....................................................................
-
+        // .....................................................................        
         options_board.foreach((row, col) => {
             // Get option data -------------------------------------------------
             const option_idx = options_board.config.ncols*row + col;
@@ -699,7 +829,6 @@ class OptionScene extends Phaser.Scene {
             // Camera goto prev_option -----------------------------------------            
             const camera = this.cameras.main;
             if (option_idx == this.init_args.option_idx) {
-                console.log(this.init_args.parent_data)
                 option_selected = true;
                 option_name_text.setDepth(2);
                 option_name_text.setScale(1.0);
@@ -712,8 +841,8 @@ class OptionScene extends Phaser.Scene {
                 this.tweens.add({
                     targets: option_name_text,
                     scale: tile.scale*original_option_idx_text_scale*3, // OBS!
-                    ease: "Quint.Out",
-                    duration: config.time.select,
+                    ease: "Quint.OutIn",
+                    duration: config.time.select*0.5,
                     onComplete: () => {
                         option_selected = false;
                         option_name_text.setDepth(0)
@@ -725,9 +854,9 @@ class OptionScene extends Phaser.Scene {
                     scrollX: 0,
                     scrollY: 0,
                     duration: config.time.select,
-                    ease: "Quad.Out",
+                    ease: "Quint.InOut",
                 });
-            }            
+            }
             // Events ----------------------------------------------------------
             const on_pointerup = () => {
                 if (option_selected) return;
@@ -735,7 +864,7 @@ class OptionScene extends Phaser.Scene {
 
                 // Reset state .................................................
                 tile.state.set("default");
-                //metatext.setDepth(0);
+                metatext.setDepth(0);
                 // Tween screen cover ..........................................
                 option_name_text.setDepth(2);
                 const screen_cover = new ScreenCover({
@@ -761,20 +890,20 @@ class OptionScene extends Phaser.Scene {
                               + option_name_text.width*0.5),
                     scrollY: option_name_text.y - config.window.height*0.5,
                     duration: config.time.select,
-                    ease: "Quint.Out",
+                    ease: "Quint.InOut",
                 });
                 // Tween option text scale .....................................
                 this.tweens.add({
                     targets: option_name_text,
                     scale: metatext.scale, // TODO: fix this hardcoding
-                    ease: "Quint.Out",
+                    ease: "Quint.InOut",
                     duration: config.time.select,
                     onComplete: () => {
-                        //this.scene.start("NewLevelScene", { // EYE
+                        //this.scene.start("LevelScene", { // EYE
                         //    config: get_level_config({act_idx:option_idx}),
                         //    metatext: option_name_text.text,
                         //});
-                        this.change_scene({                            
+                        this.change_scene({
                             metatext: option_name_text.text,
                             option_idx: option_idx,
                         });
@@ -807,31 +936,88 @@ class OptionScene extends Phaser.Scene {
         });
     }
 }
-class NewActScene extends OptionScene {
+
+class MenuScene extends OptionScene {
     constructor() {
-        super({ key: "NewActScene" });
+        super({ key: "MenuScene" });
     }
     change_scene({option_idx, metatext}) {
-        this.scene.start("NewLevelScene", {
+        const on_release = (scene) => {
+            scene.scene.start("MenuScene", {
+                config: this.config,
+                metatext: "Menu",
+                option_idx: option_idx,
+            });
+        };
+        const switch_to = ({scene_name, scene_config}) => {
+            this.scene.start(scene_name, {
+                config: scene_config,
+                metatext: metatext,
+                on_release: on_release,
+                parent_option_idx: option_idx,
+            });
+        };
+        if (metatext == "Acts") {
+            switch_to({
+                scene_name: "ActScene",
+                scene_config: get_act_config(),
+            });
+        }
+        if (metatext == "Controls") {
+            switch_to({
+                scene_name: "ControlsScene",
+                scene_config: get_controls_config(),
+            });
+        }
+        else {
+            console.log("Hi")
+        }        
+    }
+}
+class ControlsScene extends BaseScene {
+    constructor() {
+        super({ key: "ControlsScene" });
+    }
+    change_scene({option_idx, metatext}) {
+        console.log("Hi");
+    }
+}
+class ActScene extends OptionScene {
+    constructor() {
+        super({ key: "ActScene" });
+    }
+    change_scene({option_idx, metatext}) {
+        this.scene.start("LevelScene", {
             config: get_level_config({act_idx:option_idx}),
             metatext: metatext,
+            on_release: (scene) => {
+                scene.scene.start("ActScene", {
+                    config: this.config,
+                    metatext: "Acts",
+                    option_idx: option_idx,
+                    on_release: this.init_args.on_release,
+                });
+            },
+            parent_option_idx: option_idx,
         });
     }
 }
-class NewLevelScene extends OptionScene {
+class LevelScene extends OptionScene {
     constructor() {
-        super({ key: "NewLevelScene" });
+        super({ key: "LevelScene" });
     }
     change_scene({option_idx, metatext}) {
         this.scene.start("GameScene", {
-            act_idx: 0, // EYE
+            act_idx: this.init_args.parent_option_idx, // EYE
             level_idx: option_idx,
             metatext: metatext,
             on_release: (scene) => {
-                scene.scene.start("NewLevelScene", {
+                scene.scene.start("LevelScene", {
                     metatext: this.metatext.text,
-                    config: get_level_config({act_idx: 0}), // EYE
+                    config: get_level_config({act_idx: this.init_args.parent_option_idx}), // EYE
                     option_idx: option_idx,
+                    on_release: this.init_args.on_release,
+                    parent_option_idx: this.init_args.parent_option_idx,
                 });
             },
         });
@@ -845,7 +1031,7 @@ class GameScene extends Phaser.Scene {
         this.init_args = {act_idx, level_idx, on_release, metatext};
     }
     create() {
-        const config = get_config({
+        const config = get_game_config({
             act_idx: this.init_args.act_idx,
             level_idx: this.init_args.level_idx,
         });
@@ -924,12 +1110,40 @@ class GameScene extends Phaser.Scene {
                 tile.state.cycle(["green", "blue", "red", "hover"]);
                 tile.state.block = (tile.state.get() != "hover");
             });
-        });
+        });        
         // Local state ---------------------------------------------------------
         const correct_state = ball_board.get_state(); // Constant
         let playing = false;
         let viewing_correct = false;
         let shuffling = false;
+        // Animate boards ------------------------------------------------------
+        ball_board.foreach((row, col) => {
+                const tile = ball_board.tiles[row][col];
+                const original_scale = tile.scale;
+                this.tweens.add({
+                    targets: tile,
+                    scale: {from: original_scale, to: original_scale*0.8},
+                    ease: "Quint.Out",
+                    duration: 500,
+                    onComplete: () => {
+                        this.tweens.add({
+                            targets: tile,
+                            scale: {from: original_scale*0.8, to: original_scale},
+                            ease: "Quint.Out",
+                            duration: 1000,
+                        });
+                    }
+                });
+        }); // TODO: Also used in victory and keydown_R, unify...
+        tile_board.foreach((row, col) => {
+                tile_board.tiles[row][col].state.set(correct_state[row][col]);
+                this.time.addEvent({
+                    delay: 500,
+                    callback: () => {
+                        tile_board.tiles[row][col].state.set("default");
+                    },
+                });
+            }); 
         // Events --------------------------------------------------------------
         const on_step = (offset) => {
             if (!playing) {return;}
@@ -965,8 +1179,23 @@ class GameScene extends Phaser.Scene {
             }});
         };
 
-        const on_next_scene = () => {
-            this.init_args.on_release(this);
+        const exit_game = () => {
+            metatext.setDepth(2);
+            const screen_cover = new ScreenCover({
+                x: config.window.width*0.5,
+                y: config.window.height*0.5,
+                scene: this,
+            }).setDepth(1);
+            screen_cover.setTint(config.window.color);
+            screen_cover.tween({
+                targets: screen_cover,
+                alpha: 1.0,
+                ease: "Quint.Out",
+                duration: config.time.select*0.3,
+                onComplete: () => {
+                    this.init_args.on_release(this);
+                },
+            });
         };
         
         const try_win = () => {
@@ -1009,24 +1238,9 @@ class GameScene extends Phaser.Scene {
             });
 
             this.time.addEvent({
-                delay: 1000,
+                delay: 2000,
                 callback: () => {
-                    metatext.setDepth(2);
-                    const screen_cover = new ScreenCover({
-                        x: config.window.width*0.5,
-                        y: config.window.height*0.5,
-                        scene: this,
-                    }).setDepth(1);
-                    screen_cover.setTint(config.window.color);
-                    screen_cover.tween({
-                        targets: screen_cover,
-                        alpha: 1.0,
-                        ease: "Quint.Out",
-                        duration: config.time.select*0.3,
-                        onComplete: () => {
-                            on_next_scene();
-                        },
-                    });
+                    exit_game();
                 },
             });
         };
@@ -1072,7 +1286,7 @@ class GameScene extends Phaser.Scene {
 
             shuffling = true;
 
-            const shuffle_steps =  1;// ball_board.config.nrows*ball_board.config.ncols; // 5;
+            const shuffle_steps =  ball_board.config.nrows*ball_board.config.ncols; // 5;
             for (let t=0; t < shuffle_steps; t++) {
                 this.time.addEvent({
                     delay: t*180,
@@ -1096,6 +1310,10 @@ class GameScene extends Phaser.Scene {
                     },
                 });
             }
+        });
+        
+        this.input.keyboard.on("keyup_ESC", function (event) {
+            exit_game();
         });
         // ---------------------------------------------------------------------
     }
@@ -1289,7 +1507,7 @@ class ColorFunctions {
 }
 class ScreenCover extends Phaser.GameObjects.Sprite {
     constructor({scene, x, y}) {
-        //let config = get_config(); ??
+        //let config = get_game_config(); ??
         super(scene, x, y, "screen_cover");
 
         this.alpha = 0;
@@ -1354,11 +1572,11 @@ function loadFont(name, url) {
     });
 }
 // Run /////////////////////////////////////////////////////////////////////////
-const GLOBAL_CONFIG = get_act_config();
+const GLOBAL_CONFIG = get_menu_config();
 var game = new Phaser.Game({
     type: Phaser.AUTO,
     width: GLOBAL_CONFIG.window.width,
     height: GLOBAL_CONFIG.window.height,
     backgroundColor: GLOBAL_CONFIG.window.color,
-    scene: [LoadingScene, NewActScene, NewLevelScene, GameScene],
+    scene: [LoadingScene, MenuScene, ControlsScene, ActScene, LevelScene, GameScene],
 });
