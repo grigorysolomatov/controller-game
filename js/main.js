@@ -11,7 +11,7 @@ function get_menu_config() {
     const options = [
         {"name": "Acts"},
         {"name": "Controls"},
-        {"name": "C"},
+        {"name": "Editor"},
         {"name": "D"},
         {"name": "E"},
     ];
@@ -57,6 +57,55 @@ function get_menu_config() {
     return config;
 }
 function get_controls_config() {
+    const options = [
+        {"name": "A"},
+        {"name": "B"},
+        {"name": "C"},
+        {"name": "D"},
+        {"name": "E"},
+    ];
+    const options_board = {
+        nrows: 5,
+        ncols: 1,
+        step: 105,
+        tile: {
+            image: "tile",
+            width: 100,
+            tint: 0xffffff,
+            depth: 0,
+            state: {
+                time: {
+                    scale: 500,
+                    tint: 200,
+                },
+                map: {
+                    "default": {
+                        scale: 1.0,
+                        tint: 0xffffff,
+                    },
+                    "hover": {
+                        scale: 1.1,
+                        tint: 0xffff00,
+                    },
+                }
+            }
+        },
+    };
+    const config = {
+        window: {
+            width: 1900,
+            height: 900,
+            color: 0x101010,
+        },
+        time: {
+            select: 1000,
+        },
+        options: options,
+        options_board: options_board,
+    };
+    return config;
+}
+function get_editor_config() {
     const options = [
         {"name": "A"},
         {"name": "B"},
@@ -563,7 +612,7 @@ function get_game_config({act_idx, level_idx}) {
                 map: {
                     "default": {
                         scale: 1.0,
-                        tint: 0x606060,
+                        tint: 0xaaaaaa,
                     },
                     "white": {
                         scale: 1.05,
@@ -631,7 +680,7 @@ function get_game_config({act_idx, level_idx}) {
                     },
                     "black": {
                         scale: 1.0,
-                        tint: 0x303030,
+                        tint: 0x404040,
                     },
                     "hover": {
                         scale: 1.1,
@@ -757,7 +806,7 @@ class BaseScene extends Phaser.Scene {
             }
         ).setOrigin(0.5).setDepth(2);
 
-        const on_release = () => {
+        this.on_release = () => {
             if (!this.init_args.on_release) {return;}
             const screen_cover = new ScreenCover({
                 x: config.window.width*0.5,
@@ -777,7 +826,7 @@ class BaseScene extends Phaser.Scene {
             });
         };        
         this.input.keyboard.on("keydown_ESC", (e) => {
-            on_release();
+            this.on_release();
         });
     }
 }
@@ -812,7 +861,7 @@ class OptionScene extends BaseScene {
             event_emitter.emit("select_option");
         });
         this.input.keyboard.on("keydown_A", (e) => {
-            on_release();
+            this.on_release();
         });
         // Setup options board -------------------------------------------------
         options_board.foreach((row, col) => {
@@ -1002,6 +1051,12 @@ class MenuScene extends OptionScene {
                 scene_config: get_controls_config(),
             });
         }
+        if (metatext == "Editor") {
+            switch_to({
+                scene_name: "EditorScene",
+                scene_config: get_editor_config(),
+            });
+        }
         else {
             console.log("Hi")
         }
@@ -1012,7 +1067,15 @@ class ControlsScene extends BaseScene {
         super({ key: "ControlsScene" });
     }
     change_scene({option_idx, metatext}) {
-        console.log("Hi");
+        console.log("Controls");
+    }
+}
+class EditorScene extends BaseScene {
+    constructor() {
+        super({ key: "EditorScene" });
+    }
+    change_scene({option_idx, metatext}) {
+        console.log("Editor");
     }
 }
 class ActScene extends OptionScene {
@@ -1040,9 +1103,12 @@ class LevelScene extends OptionScene {
         super({ key: "LevelScene" });
     }
     change_scene({option_idx, metatext}) {
-        this.scene.start("GameScene", {
-            act_idx: this.init_args.context.act_idx, // EYE
+        const context = {
+            act_idx: this.init_args.context.act_idx,
             level_idx: option_idx,
+        };
+        this.scene.start("GameScene", {
+            config: get_game_config(context),
             metatext: metatext,
             on_release: (scene) => {
                 scene.scene.start("LevelScene", {
@@ -1053,10 +1119,278 @@ class LevelScene extends OptionScene {
                     context: this.init_args.context,
                 });
             },
+            context: context,
         });
     }
 }
-class GameScene extends Phaser.Scene {
+class GameScene extends BaseScene {
+    constructor() {
+        super({ key: "GameScene" });
+    }
+    create() {
+        super.create();
+        const config = this.config;
+        const metatext = this.metatext;
+        // Cursor --------------------------------------------------------------
+         let cursor = {
+            row: Math.floor(config.tile_board.nrows*0.5),
+            col: Math.floor(config.tile_board.ncols*0.5),
+        };
+        // Make tile board -----------------------------------------------------
+        const tile_board = new Board({
+            scene: this,
+            x: config.window.width*0.6,
+            y: config.window.height*0.5,
+            config: config.tile_board,
+        });
+        tile_board.foreach((row, col) => {
+            const tile = tile_board.tiles[row][col];
+            //tile.setInteractive();
+            new VisState(config.tile_board.tile.state).inject({
+                sprite: tile,
+                state: "default",
+            });
+        });
+        // Make ball board -----------------------------------------------------
+        const ball_board = new Board({
+            scene: this,
+            x: config.window.width*0.6,
+            y: config.window.height*0.5,
+            config: config.ball_board,
+        });
+        ball_board.foreach((row, col) => {
+            const tile = ball_board.tiles[row][col];
+            new VisState(config.ball_board.tile.state).inject({
+                sprite: tile,
+                state: config.tile_board.level.labels[
+                    config.tile_board.level.layout[row][col]
+                ],
+            });
+            tile.state.block = true;
+            // tile.setInteractive(); // TODO: Do I need this?
+            tile.on("pointerover", () => {
+                tile.state.set("hover");
+                //cursor = {row: tile.row, col: tile.col};
+            });
+            tile.on("pointerout", () => {
+                tile.state.set("white");
+                //cursor = null;
+            });
+            tile.on("pointerup", () => {
+                return;
+                tile.state.block = false;
+                tile.state.cycle(["green", "blue", "red", "hover"]);
+                tile.state.block = (tile.state.get() != "hover");
+            });
+        });
+        // Local state ---------------------------------------------------------
+        const correct_state = ball_board.get_state(); // Constant
+        let playing = false;
+        let viewing_correct = false;
+        let shuffling = false;
+        // Animate boards ------------------------------------------------------
+        ball_board.foreach((row, col) => {
+                const tile = ball_board.tiles[row][col];
+                const original_scale = tile.scale;
+                this.tweens.add({
+                    targets: tile,
+                    scale: {from: original_scale, to: original_scale*0.8},
+                    ease: "Quint.Out",
+                    duration: 500,
+                    onComplete: () => {
+                        this.tweens.add({
+                            targets: tile,
+                            scale: {from: original_scale*0.8, to: original_scale},
+                            ease: "Quint.Out",
+                            duration: 1000,
+                        });
+                    }
+                });
+        }); // TODO: Also used in victory and keydown_R, unify...
+        tile_board.foreach((row, col) => {
+                tile_board.tiles[row][col].state.set(correct_state[row][col]);
+                this.time.addEvent({
+                    delay: 500,
+                    callback: () => {
+                        tile_board.tiles[row][col].state.set("default");
+                    },
+                });
+            });
+        // Events --------------------------------------------------------------
+        const on_step = (offset) => {
+            if (!playing) {return;}
+
+            let click = this.sound.add("click").setVolume(0.1).play();
+
+            const prev_state = (viewing_correct)? correct_state[cursor.row][cursor.col] : "default";
+            tile_board.tiles[cursor.row][cursor.col].state.set(prev_state);
+
+            cursor.row += offset.row;
+            cursor.col += offset.col;
+            cursor.row = (cursor.row + tile_board.config.nrows) % tile_board.config.nrows;
+            cursor.col = (cursor.col + tile_board.config.ncols) % tile_board.config.ncols;
+            tile_board.tiles[cursor.row][cursor.col].state.set("cursor");
+        };
+        const on_twist = (reverse) => {
+            if (!playing) {return;}
+
+            this.sound.play("swoosh");
+
+            if (cursor.row == 0
+                || cursor.col == 0
+                || cursor.row == tile_board.config.nrows-1
+                || cursor.col == tile_board.config.ncols-1) {
+                return;
+            }
+            let cycle = pos_circ(cursor);
+            if (reverse) {cycle = cycle.reverse();}
+
+            ball_board.cycle({pos_list: cycle});
+            ball_board.cycle({pos_list: cycle, onComplete: () => {
+                try_win();
+            }});
+        };
+
+        const exit_game = () => {
+            metatext.setDepth(2);
+            const screen_cover = new ScreenCover({
+                x: config.window.width*0.5,
+                y: config.window.height*0.5,
+                scene: this,
+            }).setDepth(1);
+            screen_cover.setTint(config.window.color);
+            screen_cover.tween({
+                targets: screen_cover,
+                alpha: 1.0,
+                ease: "Quint.Out",
+                duration: config.time.select,
+                onComplete: () => {
+                    this.init_args.on_release(this);
+                },
+            });
+        };
+
+        const try_win = () => {
+            if (!playing) {return;}
+
+            // TODO: Inefficient because of strings. Use int instead?
+            const current_state = ball_board.get_state();
+            if (!compare2DArrays(current_state, correct_state)) {return;}
+
+            this.sound.play("boom");
+
+            playing = false;
+            tile_board.tiles[cursor.row][cursor.col].state.set("default");
+            ball_board.foreach((row, col) => {
+                const tile = ball_board.tiles[row][col];
+                const original_scale = tile.scale;
+                this.tweens.add({
+                    targets: tile,
+                    scale: {from: original_scale, to: original_scale*0.8},
+                    ease: "Quint.Out",
+                    duration: 500,
+                    onComplete: () => {
+                        this.tweens.add({
+                            targets: tile,
+                            scale: {from: original_scale*0.8, to: original_scale},
+                            ease: "Quint.Out",
+                            duration: 1000,
+                        });
+                    }
+                });
+            });
+            tile_board.foreach((row, col) => {
+                tile_board.tiles[row][col].state.set(correct_state[row][col]);
+                this.time.addEvent({
+                    delay: 500,
+                    callback: () => {
+                        tile_board.tiles[row][col].state.set("default");
+                    },
+                });
+            });
+
+            this.time.addEvent({
+                delay: 2000,
+                callback: () => {
+                    exit_game();
+                },
+            });
+        };
+
+        this.input.keyboard.on("keydown_E", (e) => {
+            on_twist(false);
+        });
+        this.input.keyboard.on("keydown_Q", (e) => {
+            on_twist(true);
+        });
+        this.input.keyboard.on("keydown_W", (e) => {
+            on_step({row:-1, col:0});
+        });
+        this.input.keyboard.on("keydown_S", (e) => {
+            on_step({row:1, col:0});
+        });
+        this.input.keyboard.on("keydown_A", (e) => {
+            on_step({row:0, col:-1});
+        });
+        this.input.keyboard.on("keydown_D", (e) => {
+            on_step({row:0, col:1});
+        });
+
+        this.input.keyboard.on("keydown_R", (e) => {
+            viewing_correct = true;
+            tile_board.foreach((row, col) => {
+                tile_board.tiles[row][col].state.set(correct_state[row][col]);
+            });
+        });
+        this.input.keyboard.on("keyup_R", (e) => {
+            viewing_correct = false;
+            tile_board.foreach((row, col) => {
+                tile_board.tiles[row][col].state.set("default");
+            });
+            if (playing) {
+                tile_board.tiles[cursor.row][cursor.col].state.set("cursor");
+            }
+        });
+
+        this.input.keyboard.on("keydown_SPACE", (e) => {
+            if (playing) {return;}
+            if (shuffling) {return;}
+
+            shuffling = true;
+
+            const shuffle_steps =  ball_board.config.nrows*ball_board.config.ncols; // 5;
+            for (let t=0; t < shuffle_steps; t++) {
+                this.time.addEvent({
+                    delay: t*180,
+                    callback: () => {
+                        this.sound.play("swoosh");
+                        const rand_pos = {
+                            row: Math.floor(1 + Math.random()*(tile_board.config.nrows-2)),
+                            col: Math.floor(1 + Math.random()*(tile_board.config.ncols-2)),
+                        };
+                        let circ = pos_circ(rand_pos);
+                        if (Math.random() < 0.5) {
+                            circ = circ.reverse();
+                        }
+                        ball_board.cycle({pos_list: circ}); // TODO: use onComplete
+                        ball_board.cycle({pos_list: circ});
+                        if (t==shuffle_steps-1) {
+                            playing = true;
+                            shuffling = false;
+                            tile_board.tiles[cursor.row][cursor.col].state.set("cursor");
+                        }
+                    },
+                });
+            }
+        });
+
+        this.input.keyboard.on("keyup_ESC", function (event) {
+            exit_game();
+        });
+        // ---------------------------------------------------------------------
+    }
+}
+class OldGameScene extends Phaser.Scene {
     constructor() {
         super({ key: "GameScene" });
     }
@@ -1611,5 +1945,8 @@ var game = new Phaser.Game({
     width: GLOBAL_CONFIG.window.width,
     height: GLOBAL_CONFIG.window.height,
     backgroundColor: GLOBAL_CONFIG.window.color,
-    scene: [LoadingScene, MenuScene, ControlsScene, ActScene, LevelScene, GameScene],
+    scene: [LoadingScene,
+            MenuScene,
+            ControlsScene, EditorScene, ActScene,
+            LevelScene, GameScene],
 });
