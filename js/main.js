@@ -592,7 +592,7 @@ function get_game_config({act_idx, level_idx}) {
                     "green": {
                         scale: 1.05,
                         tint: 0x00ff00,
-                    },                    
+                    },
                     "blue": {
                         scale: 1.05,
                         tint: 0x0000ff,
@@ -604,7 +604,7 @@ function get_game_config({act_idx, level_idx}) {
                     "violet": {
                         scale: 1.05,
                         tint: 0xff00ff,
-                    },                    
+                    },
                 }
             }
         },
@@ -676,13 +676,14 @@ function get_game_config({act_idx, level_idx}) {
             color: 0x101010,
         },
         time: {
-            select: 1000,
+            select: 500,
         },
         tile_board: tile_board,
         ball_board: ball_board,
     };
     return config;
 }
+
 class LoadingScene extends Phaser.Scene {
     constructor() {
         super({ key: "LoadingScene" });
@@ -724,14 +725,14 @@ class LoadingScene extends Phaser.Scene {
     }
 }
 class BaseScene extends Phaser.Scene {
-    init({config, metatext, on_release, parent_option_idx}) {
-        this.init_args = {config, metatext, on_release};
+    init({config, metatext, on_release, context}) {
+        this.init_args = {config, metatext, on_release, context};
     }
     create() {
         this.config = this.init_args.config;
         const config = this.config;
 
-        // Tween screen cover ..................................................       
+        // Tween screen cover ..................................................
         const screen_cover = new ScreenCover({
             x: config.window.width*0.5,
             y: config.window.height*0.5,
@@ -745,7 +746,7 @@ class BaseScene extends Phaser.Scene {
             ease: "Quint.Out",
             duration: config.time.select,
         });
-        // Make metatext .......................................................        
+        // Make metatext .......................................................
         this.metatext = this.add.text(
             0.25*config.window.width, // TODO: fix this hardcoding
             0.5*config.window.height, // TODO: fix this hardcoding
@@ -756,7 +757,7 @@ class BaseScene extends Phaser.Scene {
             }
         ).setOrigin(0.5).setDepth(2);
 
-        this.input.keyboard.on("keyup_ESC", (e) => {
+        const on_release = () => {
             if (!this.init_args.on_release) {return;}
             const screen_cover = new ScreenCover({
                 x: config.window.width*0.5,
@@ -773,38 +774,59 @@ class BaseScene extends Phaser.Scene {
                 onComplete: ()  => {
                     this.init_args.on_release(this);
                 },
-            });            
+            });
+        };        
+        this.input.keyboard.on("keydown_ESC", (e) => {
+            on_release();
         });
     }
 }
 class OptionScene extends BaseScene {
-    init({config, metatext, option_idx, on_release, parent_option_idx}) {
-        this.init_args = {config, metatext, option_idx, on_release, parent_option_idx};
+    init({config, metatext, option_idx, on_release, context}) {
+        this.init_args = {config, metatext, option_idx, on_release, context};
+        // parent_option_idx
     }
     create() {
-        super.create();        
-        const config = this.config;       
+        super.create();
+        const config = this.config;
         const metatext = this.metatext;
-        // Make options board ..................................................
+        // Make options board --------------------------------------------------
         const options_board = new Board({
             scene: this,
             x: config.window.width*0.4, // TODO: Hardcoded values
             y: config.window.height*0.5,
             config: config.options_board,
         });
-        // .....................................................................        
+        // Events --------------------------------------------------------------
+        let hover_idx = this.init_args.option_idx || 0;
+        const event_emitter = new Phaser.Events.EventEmitter();        
+        this.input.keyboard.on("keydown_W", (e) => {
+            hover_idx = (hover_idx - 1 + options_board.config.nrows) % options_board.config.nrows;
+            event_emitter.emit("change_hover");
+        });
+        this.input.keyboard.on("keydown_S", (e) => {
+            hover_idx = (hover_idx + 1 + options_board.config.nrows) % options_board.config.nrows;
+            event_emitter.emit("change_hover");
+        });
+        this.input.keyboard.on("keydown_D", (e) => {
+            event_emitter.emit("select_option");
+        });
+        this.input.keyboard.on("keydown_A", (e) => {
+            on_release();
+        });
+        // Setup options board -------------------------------------------------
         options_board.foreach((row, col) => {
-            // Get option data -------------------------------------------------
+            // Get option data .................................................
             const option_idx = options_board.config.ncols*row + col;
-            const tile = options_board.tiles[row][col];            
-            // Manipulate option data ------------------------------------------
+            const tile = options_board.tiles[row][col];
+            // Manipulate option data ..........................................
             tile.setInteractive();
             new VisState(config.options_board.tile.state).inject({
                 sprite: tile,
                 state: "default",
             });
             let option_selected = false;
-            // Make text -------------------------------------------------------
+            // Make text .......................................................
             const option_idx_text = this.add.text(
                 tile.x,
                 tile.y,
@@ -824,9 +846,23 @@ class OptionScene extends BaseScene {
                     fill: "#ffffff",
                 }
             ).setOrigin(0.0, 0.5);
-            // Get text data ---------------------------------------------------
-            const original_option_idx_text_scale = option_idx_text.scale;
-            // Camera goto prev_option -----------------------------------------            
+            // Get text data ...................................................
+            const original_option_idx_text_scale = option_idx_text.scale;            
+            // Hover highlighting ..............................................
+            event_emitter.on("change_hover", () => {
+                if (option_selected) return;
+                if (option_idx == hover_idx) {
+                    tile.state.set("hover");
+                }
+                else {
+                    tile.state.set("default");
+                }
+            });
+            event_emitter.emit("change_hover"); // This happens only once (per tile)
+            event_emitter.on("select_option", () => {
+                if (option_idx == hover_idx) {on_pointerup();}                
+            });
+            // Camera goto prev_option .........................................
             const camera = this.cameras.main;
             if (option_idx == this.init_args.option_idx) {
                 option_selected = true;
@@ -845,10 +881,9 @@ class OptionScene extends BaseScene {
                     duration: config.time.select*0.5,
                     onComplete: () => {
                         option_selected = false;
-                        option_name_text.setDepth(0)
+                        option_name_text.setDepth(0);                        
                     },
                 });
-
                 this.tweens.add({
                     targets: camera,
                     scrollX: 0,
@@ -857,7 +892,7 @@ class OptionScene extends BaseScene {
                     ease: "Quint.InOut",
                 });
             }
-            // Events ----------------------------------------------------------
+            // Events ..........................................................
             const on_pointerup = () => {
                 if (option_selected) return;
                 option_selected = true;
@@ -899,27 +934,25 @@ class OptionScene extends BaseScene {
                     ease: "Quint.InOut",
                     duration: config.time.select,
                     onComplete: () => {
-                        //this.scene.start("LevelScene", { // EYE
-                        //    config: get_level_config({act_idx:option_idx}),
-                        //    metatext: option_name_text.text,
-                        //});
                         this.change_scene({
                             metatext: option_name_text.text,
                             option_idx: option_idx,
                         });
                     },
                 });
-                // .............................................................                
-                
+                // .............................................................
+
             };
             tile.on("pointerover", () => {
                 if (option_selected) return;
                 tile.state.set("hover");
+                hover_idx = option_idx;
+                event_emitter.emit("change_hover");
             });
-            tile.on("pointerout", () => {
-                if (option_selected) return;
-                tile.state.set("default");
-            });
+            //tile.on("pointerout", () => {
+            //    if (option_selected) return;
+            //    tile.state.set("default");
+            //});
             tile.on("pointerup", () => {
                 on_pointerup();
             });
@@ -932,7 +965,7 @@ class OptionScene extends BaseScene {
                 if (option_selected) {return;}
                 option_name_text.scale = tile.scale*original_option_idx_text_scale*3;
             });
-            // -----------------------------------------------------------------
+            // .................................................................
         });
     }
 }
@@ -954,7 +987,7 @@ class MenuScene extends OptionScene {
                 config: scene_config,
                 metatext: metatext,
                 on_release: on_release,
-                parent_option_idx: option_idx,
+                context: null,
             });
         };
         if (metatext == "Acts") {
@@ -971,7 +1004,7 @@ class MenuScene extends OptionScene {
         }
         else {
             console.log("Hi")
-        }        
+        }
     }
 }
 class ControlsScene extends BaseScene {
@@ -998,7 +1031,7 @@ class ActScene extends OptionScene {
                     on_release: this.init_args.on_release,
                 });
             },
-            parent_option_idx: option_idx,
+            context: {act_idx: option_idx},
         });
     }
 }
@@ -1008,16 +1041,16 @@ class LevelScene extends OptionScene {
     }
     change_scene({option_idx, metatext}) {
         this.scene.start("GameScene", {
-            act_idx: this.init_args.parent_option_idx, // EYE
+            act_idx: this.init_args.context.act_idx, // EYE
             level_idx: option_idx,
             metatext: metatext,
             on_release: (scene) => {
                 scene.scene.start("LevelScene", {
                     metatext: this.metatext.text,
-                    config: get_level_config({act_idx: this.init_args.parent_option_idx}), // EYE
+                    config: get_level_config({act_idx: this.init_args.context.act_idx}), // EYE
                     option_idx: option_idx,
                     on_release: this.init_args.on_release,
-                    parent_option_idx: this.init_args.parent_option_idx,
+                    context: this.init_args.context,
                 });
             },
         });
@@ -1110,7 +1143,7 @@ class GameScene extends Phaser.Scene {
                 tile.state.cycle(["green", "blue", "red", "hover"]);
                 tile.state.block = (tile.state.get() != "hover");
             });
-        });        
+        });
         // Local state ---------------------------------------------------------
         const correct_state = ball_board.get_state(); // Constant
         let playing = false;
@@ -1143,7 +1176,7 @@ class GameScene extends Phaser.Scene {
                         tile_board.tiles[row][col].state.set("default");
                     },
                 });
-            }); 
+            });
         // Events --------------------------------------------------------------
         const on_step = (offset) => {
             if (!playing) {return;}
@@ -1191,13 +1224,13 @@ class GameScene extends Phaser.Scene {
                 targets: screen_cover,
                 alpha: 1.0,
                 ease: "Quint.Out",
-                duration: config.time.select*0.3,
+                duration: config.time.select,
                 onComplete: () => {
                     this.init_args.on_release(this);
                 },
             });
         };
-        
+
         const try_win = () => {
             if (!playing) {return;}
 
@@ -1263,7 +1296,7 @@ class GameScene extends Phaser.Scene {
         this.input.keyboard.on("keydown_D", (e) => {
             on_step({row:0, col:1});
         });
-        
+
         this.input.keyboard.on("keydown_R", (e) => {
             viewing_correct = true;
             tile_board.foreach((row, col) => {
@@ -1279,7 +1312,7 @@ class GameScene extends Phaser.Scene {
                 tile_board.tiles[cursor.row][cursor.col].state.set("cursor");
             }
         });
-        
+
         this.input.keyboard.on("keydown_SPACE", (e) => {
             if (playing) {return;}
             if (shuffling) {return;}
@@ -1311,7 +1344,7 @@ class GameScene extends Phaser.Scene {
                 });
             }
         });
-        
+
         this.input.keyboard.on("keyup_ESC", function (event) {
             exit_game();
         });
