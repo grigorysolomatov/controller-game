@@ -12,11 +12,9 @@ function get_menu_config() {
         {"name": "Acts"},
         {"name": "Controls"},
         {"name": "Editor"},
-        {"name": "D"},
-        {"name": "E"},
     ];
     const options_board = {
-        nrows: 5,
+        nrows: options.length,
         ncols: 1,
         step: 105,
         tile: {
@@ -58,14 +56,16 @@ function get_menu_config() {
 }
 function get_controls_config() {
     const options = [
-        {"name": "A"},
-        {"name": "B"},
-        {"name": "C"},
-        {"name": "D"},
-        {"name": "E"},
+        {"name": "Left"},
+        {"name": "Right"},
+        {"name": "Up"},
+        {"name": "Down"},
+        {"name": "Rot left"},
+        {"name": "Rot right"},
+        {"name": "Shuffle"},
     ];
     const options_board = {
-        nrows: 5,
+        nrows: options.length,
         ncols: 1,
         step: 105,
         tile: {
@@ -102,6 +102,19 @@ function get_controls_config() {
         },
         options: options,
         options_board: options_board,
+    };
+    return config;
+}
+function get_setcontrols_config() {
+    const config = {
+        window: {
+            width: 1900,
+            height: 900,
+            color: 0x101010,
+        },
+        time: {
+            select: 1000,
+        },
     };
     return config;
 }
@@ -757,7 +770,7 @@ class LoadingScene extends Phaser.Scene {
             0.5*config.window.height,
             "Loading",
             {
-                font: "bold 50px Monospace",
+                font: "bold 50px BaseFont",
                 fill: "#ffffff",
             }
         ).setOrigin(0.5);
@@ -1029,6 +1042,7 @@ class MenuScene extends OptionScene {
                 config: this.config,
                 metatext: "Menu",
                 option_idx: option_idx,
+                context: {},
             });
         };
         const switch_to = ({scene_name, scene_config}) => {
@@ -1045,29 +1059,89 @@ class MenuScene extends OptionScene {
                 scene_config: get_act_config(),
             });
         }
-        if (metatext == "Controls") {
+        else if (metatext == "Controls") {
             switch_to({
                 scene_name: "ControlsScene",
                 scene_config: get_controls_config(),
             });
         }
-        if (metatext == "Editor") {
+        else if (metatext == "Editor") {
             switch_to({
                 scene_name: "EditorScene",
                 scene_config: get_editor_config(),
             });
         }
         else {
-            console.log("Hi")
+            console.log("WOOPS")
         }
     }
 }
-class ControlsScene extends BaseScene {
+class ControlsScene extends OptionScene {
     constructor() {
         super({ key: "ControlsScene" });
     }
     change_scene({option_idx, metatext}) {
-        console.log("Controls");
+        this.scene.start("SetControlsScene", {
+            config: get_setcontrols_config(),
+            metatext: metatext,
+            on_release: (scene) => {
+                scene.scene.start("ControlsScene", {
+                    config: this.config,
+                    metatext: this.metatext.text,
+                    option_idx: option_idx,
+                    on_release: this.init_args.on_release,
+                });
+            },
+            context: {control_idx: option_idx},
+        });
+    }
+    create() {
+        super.create();
+        const config = this.config;
+        const metatext = this.metatext;        
+    }
+}
+class SetControlsScene extends BaseScene {
+    constructor() {
+        super({ key: "SetControlsScene" });
+    }
+    create() {
+        super.create();
+        const config = this.config;
+        const metatext = this.metatext;
+        // Colon ---------------------------------------------------------------
+        const press_text = this.add.text(
+            metatext.x,
+            metatext.y,
+            metatext.text,
+            {
+                font: "bold 70px BaseFont", // TODO: Hardcoded values, move to config
+                fill: "#ffffff",
+            }
+        ).setOrigin(0.5).setDepth(0);
+        const x = press_text.x;
+        press_text.setOrigin(0.0, 0.5);
+        press_text.x = x - press_text.width*0.5;
+        press_text.setText(press_text.text + ":");
+        // Press key text ------------------------------------------------------
+        this.add.text(
+            0.5*config.window.width,
+            0.5*config.window.height,
+            "[Press key]",
+            {
+                font: "bold 50px BaseFont",
+                fill: "#ffffff",
+            }
+        ).setOrigin(0.5);
+        // Events --------------------------------------------------------------
+        this.input.keyboard.on("keydown", (e) => {
+            let key = event.key;//.toUpperCase();
+            if (key == " ") {key = "SPACE"};
+            
+            console.log("Key code: " + key);
+            //this.context.
+            this.on_release();            
+        });
     }
 }
 class EditorScene extends BaseScene {
@@ -1076,6 +1150,12 @@ class EditorScene extends BaseScene {
     }
     change_scene({option_idx, metatext}) {
         console.log("Editor");
+    }
+    create() {
+        super.create();
+        const config = this.config;
+        const metatext = this.metatext;
+        // ---------------------------------------------------------------------
     }
 }
 class ActScene extends OptionScene {
@@ -1132,7 +1212,7 @@ class GameScene extends BaseScene {
         const config = this.config;
         const metatext = this.metatext;
         // Cursor --------------------------------------------------------------
-         let cursor = {
+        let cursor = {
             row: Math.floor(config.tile_board.nrows*0.5),
             col: Math.floor(config.tile_board.ncols*0.5),
         };
@@ -1208,14 +1288,19 @@ class GameScene extends BaseScene {
                 });
         }); // TODO: Also used in victory and keydown_R, unify...
         tile_board.foreach((row, col) => {
-                tile_board.tiles[row][col].state.set(correct_state[row][col]);
-                this.time.addEvent({
+            const tile = tile_board.tiles[row][col];
+            tile.setInteractive();
+            tile.state.set(correct_state[row][col]);
+            this.time.addEvent({
                     delay: 500,
                     callback: () => {
-                        tile_board.tiles[row][col].state.set("default");
+                        tile.state.set("default");
                     },
                 });
+            tile.on("pointerover", () => {
+                on_step({row: row - cursor.row, col: col - cursor.col});
             });
+        });
         // Events --------------------------------------------------------------
         const on_step = (offset) => {
             if (!playing) {return;}
@@ -1250,7 +1335,6 @@ class GameScene extends BaseScene {
                 try_win();
             }});
         };
-
         const exit_game = () => {
             metatext.setDepth(2);
             const screen_cover = new ScreenCover({
@@ -1269,7 +1353,6 @@ class GameScene extends BaseScene {
                 },
             });
         };
-
         const try_win = () => {
             if (!playing) {return;}
 
@@ -1947,6 +2030,6 @@ var game = new Phaser.Game({
     backgroundColor: GLOBAL_CONFIG.window.color,
     scene: [LoadingScene,
             MenuScene,
-            ControlsScene, EditorScene, ActScene,
+            ControlsScene, SetControlsScene, EditorScene, ActScene,
             LevelScene, GameScene],
 });
