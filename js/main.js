@@ -9,7 +9,7 @@ const NOTES = [
 
 function get_menu_config() {
     const options = [
-        {"name": "Acts"},
+        {"name": "Levels"},
         {"name": "Controls"},
         {"name": "Editor"},
     ];
@@ -746,46 +746,20 @@ function get_game_config({act_idx, level_idx}) {
     return config;
 }
 
-class LoadingScene extends Phaser.Scene {
-    constructor() {
-        super({ key: "LoadingScene" });
-    }
-    preload() {
-        //this.show_loading();
-
-        this.load.image("tile", "assets/images/tile.svg");
-        this.load.image("agent", "assets/images/agent.svg");
-        this.load.image("screen_cover", "assets/images/screen_cover.svg");
-
-        this.load.audio("swoosh", "assets/sounds/swoosh.wav");
-        this.load.audio("click", "assets/sounds/click.mp3");
-        this.load.audio("boom", 'assets/sounds/boom.wav');
-
-        loadFont("BaseFont", "assets/fonts/Autour_One/AutourOne-Regular.ttf");
-    }
-    show_loading() {
-        const config = get_act_config();
-        this.add.text(
-            0.5*config.window.width,
-            0.5*config.window.height,
-            "Loading",
-            {
-                font: "bold 50px BaseFont",
-                fill: "#ffffff",
-            }
-        ).setOrigin(0.5);
-    }
-    create() {
-        this.scene.start("MenuScene", {
-            config: get_menu_config(),
-            metatext: "Menu",
-        });
-        //this.scene.start("ActScene", {
-        //    config: get_act_config(),
-        //    metatext: "Acts",
-        //});
-    }
+function get_default_keybindings() {
+    const keybindings = {
+        step_left: 65,   // A
+        step_right: 68,  // D
+        step_up: 87,     // W
+        step_down: 83,   // S
+        twist_left: 81,  // Q
+        twist_right: 69, // E
+        accept: 32,      // SPACE
+        escape: 27,      // ESC
+    };    
+    return keybindings
 }
+
 class BaseScene extends Phaser.Scene {
     init({config, metatext, on_release, context}) {
         this.init_args = {config, metatext, on_release, context};
@@ -1032,17 +1006,56 @@ class OptionScene extends BaseScene {
     }
 }
 
+class LoadingScene extends Phaser.Scene {
+    constructor() {
+        super({ key: "LoadingScene" });
+    }
+    preload() {
+        //this.show_loading();
+
+        this.load.image("tile", "assets/images/tile.svg");
+        this.load.image("agent", "assets/images/agent.svg");
+        this.load.image("screen_cover", "assets/images/screen_cover.svg");
+
+        this.load.audio("swoosh", "assets/sounds/swoosh.wav");
+        this.load.audio("click", "assets/sounds/click.mp3");
+        this.load.audio("boom", 'assets/sounds/boom.wav');
+
+        loadFont("BaseFont", "assets/fonts/Autour_One/AutourOne-Regular.ttf");
+    }
+    show_loading() {
+        const config = get_act_config();
+        this.add.text(
+            0.5*config.window.width,
+            0.5*config.window.height,
+            "Loading",
+            {
+                font: "bold 50px BaseFont",
+                fill: "#ffffff",
+            }
+        ).setOrigin(0.5);
+    }
+    create() {
+        this.scene.start("MenuScene", {
+            config: get_menu_config(),
+            metatext: "Menu",
+            context: {
+                keybindings: get_default_keybindings(),
+            },
+        });
+    }
+}
 class MenuScene extends OptionScene {
     constructor() {
         super({ key: "MenuScene" });
     }
-    change_scene({option_idx, metatext}) {
+    change_scene({option_idx, metatext}) {        
         const on_release = (scene) => {
             scene.scene.start("MenuScene", {
                 config: this.config,
                 metatext: "Menu",
                 option_idx: option_idx,
-                context: {},
+                context: this.init_args.context, // TODO: Get context fro child? Now child manipulates "global" context.
             });
         };
         const switch_to = ({scene_name, scene_config}) => {
@@ -1050,10 +1063,10 @@ class MenuScene extends OptionScene {
                 config: scene_config,
                 metatext: metatext,
                 on_release: on_release,
-                context: null,
+                context: this.init_args.context,
             });
         };
-        if (metatext == "Acts") {
+        if (metatext == "Levels") {
             switch_to({
                 scene_name: "ActScene",
                 scene_config: get_act_config(),
@@ -1081,6 +1094,7 @@ class ControlsScene extends OptionScene {
         super({ key: "ControlsScene" });
     }
     change_scene({option_idx, metatext}) {
+        this.init_args.context.control_idx = option_idx;
         this.scene.start("SetControlsScene", {
             config: get_setcontrols_config(),
             metatext: metatext,
@@ -1090,9 +1104,10 @@ class ControlsScene extends OptionScene {
                     metatext: this.metatext.text,
                     option_idx: option_idx,
                     on_release: this.init_args.on_release,
+                    context: this.init_args.context,
                 });
             },
-            context: {control_idx: option_idx},
+            context: this.init_args.context,
         });
     }
     create() {
@@ -1137,9 +1152,10 @@ class SetControlsScene extends BaseScene {
         this.input.keyboard.on("keydown", (e) => {
             let key = event.key;//.toUpperCase();
             if (key == " ") {key = "SPACE"};
-            
-            console.log("Key code: " + key);
-            //this.context.
+
+            console.log("Code: " + e.keyCode);
+            console.log("Key: " + key);
+            //this.init_args.context.
             this.on_release();            
         });
     }
@@ -1163,18 +1179,20 @@ class ActScene extends OptionScene {
         super({ key: "ActScene" });
     }
     change_scene({option_idx, metatext}) {
+        this.init_args.context.act_idx = option_idx;
         this.scene.start("LevelScene", {
             config: get_level_config({act_idx:option_idx}),
             metatext: metatext,
             on_release: (scene) => {
                 scene.scene.start("ActScene", {
                     config: this.config,
-                    metatext: "Acts",
+                    metatext: "Levels",
                     option_idx: option_idx,
                     on_release: this.init_args.on_release,
+                    context: this.init_args.context,
                 });
             },
-            context: {act_idx: option_idx},
+            context: this.init_args.context,
         });
     }
 }
@@ -1183,12 +1201,12 @@ class LevelScene extends OptionScene {
         super({ key: "LevelScene" });
     }
     change_scene({option_idx, metatext}) {
-        const context = {
-            act_idx: this.init_args.context.act_idx,
-            level_idx: option_idx,
-        };
+        this.init_args.context.level_idx = option_idx;
         this.scene.start("GameScene", {
-            config: get_game_config(context),
+            config: get_game_config({
+                act_idx: this.init_args.context.act_idx,
+                level_idx: this.init_args.context.level_idx,
+            }),
             metatext: metatext,
             on_release: (scene) => {
                 scene.scene.start("LevelScene", {
@@ -1199,7 +1217,7 @@ class LevelScene extends OptionScene {
                     context: this.init_args.context,
                 });
             },
-            context: context,
+            context: this.init_args.context.level_idx,
         });
     }
 }
@@ -1353,301 +1371,6 @@ class GameScene extends BaseScene {
                 },
             });
         };
-        const try_win = () => {
-            if (!playing) {return;}
-
-            // TODO: Inefficient because of strings. Use int instead?
-            const current_state = ball_board.get_state();
-            if (!compare2DArrays(current_state, correct_state)) {return;}
-
-            this.sound.play("boom");
-
-            playing = false;
-            tile_board.tiles[cursor.row][cursor.col].state.set("default");
-            ball_board.foreach((row, col) => {
-                const tile = ball_board.tiles[row][col];
-                const original_scale = tile.scale;
-                this.tweens.add({
-                    targets: tile,
-                    scale: {from: original_scale, to: original_scale*0.8},
-                    ease: "Quint.Out",
-                    duration: 500,
-                    onComplete: () => {
-                        this.tweens.add({
-                            targets: tile,
-                            scale: {from: original_scale*0.8, to: original_scale},
-                            ease: "Quint.Out",
-                            duration: 1000,
-                        });
-                    }
-                });
-            });
-            tile_board.foreach((row, col) => {
-                tile_board.tiles[row][col].state.set(correct_state[row][col]);
-                this.time.addEvent({
-                    delay: 500,
-                    callback: () => {
-                        tile_board.tiles[row][col].state.set("default");
-                    },
-                });
-            });
-
-            this.time.addEvent({
-                delay: 2000,
-                callback: () => {
-                    exit_game();
-                },
-            });
-        };
-
-        this.input.keyboard.on("keydown_E", (e) => {
-            on_twist(false);
-        });
-        this.input.keyboard.on("keydown_Q", (e) => {
-            on_twist(true);
-        });
-        this.input.keyboard.on("keydown_W", (e) => {
-            on_step({row:-1, col:0});
-        });
-        this.input.keyboard.on("keydown_S", (e) => {
-            on_step({row:1, col:0});
-        });
-        this.input.keyboard.on("keydown_A", (e) => {
-            on_step({row:0, col:-1});
-        });
-        this.input.keyboard.on("keydown_D", (e) => {
-            on_step({row:0, col:1});
-        });
-
-        this.input.keyboard.on("keydown_R", (e) => {
-            viewing_correct = true;
-            tile_board.foreach((row, col) => {
-                tile_board.tiles[row][col].state.set(correct_state[row][col]);
-            });
-        });
-        this.input.keyboard.on("keyup_R", (e) => {
-            viewing_correct = false;
-            tile_board.foreach((row, col) => {
-                tile_board.tiles[row][col].state.set("default");
-            });
-            if (playing) {
-                tile_board.tiles[cursor.row][cursor.col].state.set("cursor");
-            }
-        });
-
-        this.input.keyboard.on("keydown_SPACE", (e) => {
-            if (playing) {return;}
-            if (shuffling) {return;}
-
-            shuffling = true;
-
-            const shuffle_steps =  ball_board.config.nrows*ball_board.config.ncols; // 5;
-            for (let t=0; t < shuffle_steps; t++) {
-                this.time.addEvent({
-                    delay: t*180,
-                    callback: () => {
-                        this.sound.play("swoosh");
-                        const rand_pos = {
-                            row: Math.floor(1 + Math.random()*(tile_board.config.nrows-2)),
-                            col: Math.floor(1 + Math.random()*(tile_board.config.ncols-2)),
-                        };
-                        let circ = pos_circ(rand_pos);
-                        if (Math.random() < 0.5) {
-                            circ = circ.reverse();
-                        }
-                        ball_board.cycle({pos_list: circ}); // TODO: use onComplete
-                        ball_board.cycle({pos_list: circ});
-                        if (t==shuffle_steps-1) {
-                            playing = true;
-                            shuffling = false;
-                            tile_board.tiles[cursor.row][cursor.col].state.set("cursor");
-                        }
-                    },
-                });
-            }
-        });
-
-        this.input.keyboard.on("keyup_ESC", function (event) {
-            exit_game();
-        });
-        // ---------------------------------------------------------------------
-    }
-}
-class OldGameScene extends Phaser.Scene {
-    constructor() {
-        super({ key: "GameScene" });
-    }
-    init({act_idx, level_idx, on_release, metatext}) {
-        this.init_args = {act_idx, level_idx, on_release, metatext};
-    }
-    create() {
-        const config = get_game_config({
-            act_idx: this.init_args.act_idx,
-            level_idx: this.init_args.level_idx,
-        });
-        let cursor = {
-            row: Math.floor(config.tile_board.nrows*0.5),
-            col: Math.floor(config.tile_board.ncols*0.5),
-        };
-
-        // Create level name text ----------------------------------------------
-        const metatext = this.add.text(
-            config.window.width*0.25,
-            config.window.height*0.5,
-            this.init_args.metatext,
-            {
-                font: "bold 70px BaseFont", // TODO: Hardcoded values, move to config
-                fill: "#ffffff",
-            }
-        ).setOrigin(0.5).setDepth(2);
-        // Fade screen cover ---------------------------------------------------
-        const screen_cover = new ScreenCover({
-            x: config.window.width*0.5,
-            y: config.window.height*0.5,
-            scene: this,
-        }).setDepth(1);
-        screen_cover.setTint(config.window.color);
-        screen_cover.setAlpha(1.0);
-        screen_cover.tween({
-            targets: screen_cover,
-            alpha: 0.0,
-            ease: "Quint.Out",
-            duration: config.time.select,
-        });
-        // Make tile board -----------------------------------------------------
-        const tile_board = new Board({
-            scene: this,
-            x: config.window.width*0.6,
-            y: config.window.height*0.5,
-            config: config.tile_board,
-        });
-        tile_board.foreach((row, col) => {
-            const tile = tile_board.tiles[row][col];
-            //tile.setInteractive();
-            new VisState(config.tile_board.tile.state).inject({
-                sprite: tile,
-                state: "default",
-            });
-        });
-        // Make ball board -----------------------------------------------------
-        const ball_board = new Board({
-            scene: this,
-            x: config.window.width*0.6,
-            y: config.window.height*0.5,
-            config: config.ball_board,
-        });
-        ball_board.foreach((row, col) => {
-            const tile = ball_board.tiles[row][col];
-            new VisState(config.ball_board.tile.state).inject({
-                sprite: tile,
-                state: config.tile_board.level.labels[
-                    config.tile_board.level.layout[row][col]
-                ],
-            });
-            tile.state.block = true;
-            // tile.setInteractive(); // TODO: Do I need this?
-            tile.on("pointerover", () => {
-                tile.state.set("hover");
-                //cursor = {row: tile.row, col: tile.col};
-            });
-            tile.on("pointerout", () => {
-                tile.state.set("white");
-                //cursor = null;
-            });
-            tile.on("pointerup", () => {
-                return;
-                tile.state.block = false;
-                tile.state.cycle(["green", "blue", "red", "hover"]);
-                tile.state.block = (tile.state.get() != "hover");
-            });
-        });
-        // Local state ---------------------------------------------------------
-        const correct_state = ball_board.get_state(); // Constant
-        let playing = false;
-        let viewing_correct = false;
-        let shuffling = false;
-        // Animate boards ------------------------------------------------------
-        ball_board.foreach((row, col) => {
-                const tile = ball_board.tiles[row][col];
-                const original_scale = tile.scale;
-                this.tweens.add({
-                    targets: tile,
-                    scale: {from: original_scale, to: original_scale*0.8},
-                    ease: "Quint.Out",
-                    duration: 500,
-                    onComplete: () => {
-                        this.tweens.add({
-                            targets: tile,
-                            scale: {from: original_scale*0.8, to: original_scale},
-                            ease: "Quint.Out",
-                            duration: 1000,
-                        });
-                    }
-                });
-        }); // TODO: Also used in victory and keydown_R, unify...
-        tile_board.foreach((row, col) => {
-                tile_board.tiles[row][col].state.set(correct_state[row][col]);
-                this.time.addEvent({
-                    delay: 500,
-                    callback: () => {
-                        tile_board.tiles[row][col].state.set("default");
-                    },
-                });
-            });
-        // Events --------------------------------------------------------------
-        const on_step = (offset) => {
-            if (!playing) {return;}
-
-            let click = this.sound.add("click").setVolume(0.1).play();
-
-            const prev_state = (viewing_correct)? correct_state[cursor.row][cursor.col] : "default";
-            tile_board.tiles[cursor.row][cursor.col].state.set(prev_state);
-
-            cursor.row += offset.row;
-            cursor.col += offset.col;
-            cursor.row = (cursor.row + tile_board.config.nrows) % tile_board.config.nrows;
-            cursor.col = (cursor.col + tile_board.config.ncols) % tile_board.config.ncols;
-            tile_board.tiles[cursor.row][cursor.col].state.set("cursor");
-        };
-        const on_twist = (reverse) => {
-            if (!playing) {return;}
-
-            this.sound.play("swoosh");
-
-            if (cursor.row == 0
-                || cursor.col == 0
-                || cursor.row == tile_board.config.nrows-1
-                || cursor.col == tile_board.config.ncols-1) {
-                return;
-            }
-            let cycle = pos_circ(cursor);
-            if (reverse) {cycle = cycle.reverse();}
-
-            ball_board.cycle({pos_list: cycle});
-            ball_board.cycle({pos_list: cycle, onComplete: () => {
-                try_win();
-            }});
-        };
-
-        const exit_game = () => {
-            metatext.setDepth(2);
-            const screen_cover = new ScreenCover({
-                x: config.window.width*0.5,
-                y: config.window.height*0.5,
-                scene: this,
-            }).setDepth(1);
-            screen_cover.setTint(config.window.color);
-            screen_cover.tween({
-                targets: screen_cover,
-                alpha: 1.0,
-                ease: "Quint.Out",
-                duration: config.time.select,
-                onComplete: () => {
-                    this.init_args.on_release(this);
-                },
-            });
-        };
-
         const try_win = () => {
             if (!playing) {return;}
 
