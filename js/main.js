@@ -781,8 +781,9 @@ function get_default_keybindings() {
         twist_right: 69, // E
         accept: 32,      // SPACE
         escape: 27,      // ESC
-    };    
-    return keybindings
+        preview: 82      // R
+    };
+    return keybindings;
 }
 
 class BaseScene extends Phaser.Scene {
@@ -846,13 +847,14 @@ class BaseScene extends Phaser.Scene {
 class OptionScene extends BaseScene {
     init({config, metatext, option_idx, on_release, context}) {
         this.init_args = {config, metatext, option_idx, on_release, context};
-        nsole.log(context);
+        console.log(context);
         // parent_option_idx
     }
     create() {
         super.create();
         const config = this.config;
-        const metatext = this.metatext;         // Make options board --------------------------------------------------
+        const metatext = this.metatext;      
+        // Make options board --------------------------------------------------
         const options_board = new Board({
             scene: this,
             x: config.window.width*0.4, // TODO: Hardcoded values
@@ -862,19 +864,30 @@ class OptionScene extends BaseScene {
         // Events --------------------------------------------------------------
         let hover_idx = this.init_args.option_idx || 0;
         const event_emitter = new Phaser.Events.EventEmitter();
-                this.input.keyboard.ad("dokeywn",_W () e=> {
+        const bindings = this.init_args.context.keybindings;
+        this.input.keyboard.addKey(bindings.step_up).on("down", () => {
             hover_idx = (hover_idx - 1 + options_board.config.nrows) % options_board.config.nrows;
             event_emitter.emit("change_hover");
         });
-        this.input.keyboard.adon("keydown_S", (e) => {           hover_idx = (hover_idx + 1 + options_board.config.nrows) % options_board.config.nrows;
+        this.input.keyboard.addKey(bindings.step_down).on("down", () => {
+            hover_idx = (hover_idx + 1 + options_board.config.nrows) % options_board.config.nrows;
             event_emitter.emit("change_hover");
         });
-        ththis.input.keyboard.on("keydown_D", (e) => {           event_emitter.emit("select_option");
+        this.input.keyboard.addKey(bindings.step_right).on("down", () => {
+            event_emitter.emit("select_option");
         });
-        ththis.input.keyboard.on("keydown_A", (e) => {           this.on_release();
+        this.input.keyboard.addKey(bindings.step_left).on("down", () => {
+            this.on_release();
         });
 
-       // Setup options board -------------------------------------------------
+        // Test ----------------------------------------------------------------
+        //let key = this.input.keyboard.addKey(76);
+        //key.on("down", function () {
+        //    console.log(76);
+        //});
+        // ---------------------------------------------------------------------
+        
+        // Setup options board -------------------------------------------------
         options_board.foreach((row, col) => {
             // Get option data .................................................
             const option_idx = options_board.config.ncols*row + col;
@@ -1446,11 +1459,11 @@ class GameScene extends BaseScene {
             });
         };
 
-        //this.input.keyboard.on("keydown_E", (e) => {
+        const bindings = this.init_args.context.keybindings;
         this.input.keyboard.addKey(bindings.twist_right).on("down", () => {
             on_twist(false);
         });
-        this.input.keyboard.addKey(bindings.twist_leftg).on("down", () => {
+        this.input.keyboard.addKey(bindings.twist_left).on("down", () => {
             on_twist(true);
         });
         this.input.keyboard.addKey(bindings.step_up).on("down", () => {
@@ -1459,20 +1472,20 @@ class GameScene extends BaseScene {
         this.input.keyboard.addKey(bindings.step_down).on("down", () => {
             on_step({row:1, col:0});
         });
-        this.input.keyboard.addKey(bindings.step_up).on("down", () => {
+        this.input.keyboard.addKey(bindings.step_left).on("down", () => {
             on_step({row:0, col:-1});
         });
-        this.input.keyboard.on("keydown_D", (e) => {
+        this.input.keyboard.addKey(bindings.step_right).on("down", () => {
             on_step({row:0, col:1});
         });
 
-        this.input.keyboard.on("keydown_R", (e) => {
+        this.input.keyboard.addKey(bindings.preview).on("down", () => {
             viewing_correct = true;
             tile_board.foreach((row, col) => {
                 tile_board.tiles[row][col].state.set(correct_state[row][col]);
             });
         });
-        this.input.keyboard.on("keyup_R", (e) => {
+        this.input.keyboard.addKey(bindings.preview).on("up", () => {
             viewing_correct = false;
             tile_board.foreach((row, col) => {
                 tile_board.tiles[row][col].state.set("default");
@@ -1482,7 +1495,7 @@ class GameScene extends BaseScene {
             }
         });
 
-        this.input.keyboard.on("keydown_SPACE", (e) => {
+        this.input.keyboard.addKey(bindings.accept).on("down", () => {
             if (playing) {return;}
             if (shuffling) {return;}
 
@@ -1514,7 +1527,7 @@ class GameScene extends BaseScene {
             }
         });
 
-        this.input.keyboard.on("keyup_ESC", (e) => {
+        this.input.keyboard.on("keyup_ESC", 
             exit_game();
         });
         // ---------------------------------------------------------------------
