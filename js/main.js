@@ -56,13 +56,38 @@ function get_menu_config() {
 }
 function get_controls_config() {
     const options = [
-        {"name": "Left"},
-        {"name": "Right"},
-        {"name": "Up"},
-        {"name": "Down"},
-        {"name": "Rot left"},
-        {"name": "Rot right"},
-        {"name": "Shuffle"},
+        {
+            name: "Left",
+            key: "step_left",
+        },
+        {
+            name: "Right",
+            key: "step_right",
+        },
+        {
+            name: "Up",
+            key: "step_up",
+        },
+        {
+            name: "Down",
+            key: "step_down",
+        },
+        {
+            name: "Rot left",
+            key: "twist_left",
+        },
+        {
+            name: "Rot right",
+            key: "twist_right",
+        },
+        {
+            name: "Accept",
+            key: "accept",
+        },
+        {
+            name: "Escape",
+            key: "escape",
+        },
     ];
     const options_board = {
         nrows: options.length,
@@ -763,6 +788,7 @@ function get_default_keybindings() {
 class BaseScene extends Phaser.Scene {
     init({config, metatext, on_release, context}) {
         this.init_args = {config, metatext, on_release, context};
+        console.log(context);
     }
     create() {
         this.config = this.init_args.config;
@@ -820,13 +846,13 @@ class BaseScene extends Phaser.Scene {
 class OptionScene extends BaseScene {
     init({config, metatext, option_idx, on_release, context}) {
         this.init_args = {config, metatext, option_idx, on_release, context};
+        nsole.log(context);
         // parent_option_idx
     }
     create() {
         super.create();
         const config = this.config;
-        const metatext = this.metatext;
-        // Make options board --------------------------------------------------
+        const metatext = this.metatext;         // Make options board --------------------------------------------------
         const options_board = new Board({
             scene: this,
             x: config.window.width*0.4, // TODO: Hardcoded values
@@ -835,22 +861,20 @@ class OptionScene extends BaseScene {
         });
         // Events --------------------------------------------------------------
         let hover_idx = this.init_args.option_idx || 0;
-        const event_emitter = new Phaser.Events.EventEmitter();        
-        this.input.keyboard.on("keydown_W", (e) => {
+        const event_emitter = new Phaser.Events.EventEmitter();
+                this.input.keyboard.ad("dokeywn",_W () e=> {
             hover_idx = (hover_idx - 1 + options_board.config.nrows) % options_board.config.nrows;
             event_emitter.emit("change_hover");
         });
-        this.input.keyboard.on("keydown_S", (e) => {
-            hover_idx = (hover_idx + 1 + options_board.config.nrows) % options_board.config.nrows;
+        this.input.keyboard.adon("keydown_S", (e) => {           hover_idx = (hover_idx + 1 + options_board.config.nrows) % options_board.config.nrows;
             event_emitter.emit("change_hover");
         });
-        this.input.keyboard.on("keydown_D", (e) => {
-            event_emitter.emit("select_option");
+        ththis.input.keyboard.on("keydown_D", (e) => {           event_emitter.emit("select_option");
         });
-        this.input.keyboard.on("keydown_A", (e) => {
-            this.on_release();
+        ththis.input.keyboard.on("keydown_A", (e) => {           this.on_release();
         });
-        // Setup options board -------------------------------------------------
+
+       // Setup options board -------------------------------------------------
         options_board.foreach((row, col) => {
             // Get option data .................................................
             const option_idx = options_board.config.ncols*row + col;
@@ -1096,7 +1120,7 @@ class ControlsScene extends OptionScene {
     change_scene({option_idx, metatext}) {
         this.init_args.context.control_idx = option_idx;
         this.scene.start("SetControlsScene", {
-            config: get_setcontrols_config(),
+            config: this.init_args.config,//get_setcontrols_config(),
             metatext: metatext,
             on_release: (scene) => {
                 scene.scene.start("ControlsScene", {
@@ -1150,13 +1174,17 @@ class SetControlsScene extends BaseScene {
         ).setOrigin(0.5);
         // Events --------------------------------------------------------------
         this.input.keyboard.on("keydown", (e) => {
-            let key = event.key;//.toUpperCase();
-            if (key == " ") {key = "SPACE"};
+            const control_idx = this.init_args.context.control_idx;
+            const control_key = config.options[control_idx].key;
+            this.init_args.context.keybindings[control_key] = e.keyCode,
+            this.on_release();
 
+            //let key = event.key;//.toUpperCase();
+            //if (key == " ") {key = "Space"};
             console.log("Code: " + e.keyCode);
-            console.log("Key: " + key);
-            //this.init_args.context.
-            this.on_release();            
+            //console.log("Key: " + key);
+            //console.log(control_key);
+            //console.log(this.init_args.context.keybindings);
         });
     }
 }
@@ -1217,7 +1245,7 @@ class LevelScene extends OptionScene {
                     context: this.init_args.context,
                 });
             },
-            context: this.init_args.context.level_idx,
+            context: this.init_args.context,
         });
     }
 }
@@ -1228,7 +1256,7 @@ class GameScene extends BaseScene {
     create() {
         super.create();
         const config = this.config;
-        const metatext = this.metatext;
+        const metatext = this.metatext;        
         // Cursor --------------------------------------------------------------
         let cursor = {
             row: Math.floor(config.tile_board.nrows*0.5),
@@ -1418,19 +1446,20 @@ class GameScene extends BaseScene {
             });
         };
 
-        this.input.keyboard.on("keydown_E", (e) => {
+        //this.input.keyboard.on("keydown_E", (e) => {
+        this.input.keyboard.addKey(bindings.twist_right).on("down", () => {
             on_twist(false);
         });
-        this.input.keyboard.on("keydown_Q", (e) => {
+        this.input.keyboard.addKey(bindings.twist_leftg).on("down", () => {
             on_twist(true);
         });
-        this.input.keyboard.on("keydown_W", (e) => {
+        this.input.keyboard.addKey(bindings.step_up).on("down", () => {
             on_step({row:-1, col:0});
         });
-        this.input.keyboard.on("keydown_S", (e) => {
+        this.input.keyboard.addKey(bindings.step_down).on("down", () => {
             on_step({row:1, col:0});
         });
-        this.input.keyboard.on("keydown_A", (e) => {
+        this.input.keyboard.addKey(bindings.step_up).on("down", () => {
             on_step({row:0, col:-1});
         });
         this.input.keyboard.on("keydown_D", (e) => {
@@ -1485,7 +1514,7 @@ class GameScene extends BaseScene {
             }
         });
 
-        this.input.keyboard.on("keyup_ESC", function (event) {
+        this.input.keyboard.on("keyup_ESC", (e) => {
             exit_game();
         });
         // ---------------------------------------------------------------------
