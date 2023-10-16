@@ -73,11 +73,11 @@ function get_controls_config() {
             key: "step_down",
         },
         {
-            name: "Rot left",
+            name: "Twist left",
             key: "twist_left",
         },
         {
-            name: "Rot right",
+            name: "Twist right",
             key: "twist_right",
         },
         {
@@ -789,12 +789,16 @@ function get_default_keybindings() {
 class BaseScene extends Phaser.Scene {
     init({config, metatext, on_release, context}) {
         this.init_args = {config, metatext, on_release, context};
-        console.log(context);
+        //console.log(context);
     }
-    create() {
+    create() {                
         this.config = this.init_args.config;
         const config = this.config;
-
+        // Remove any old keys -------------------------------------------------
+        this.input.keyboard.keys.forEach((key) => {
+            if (key == undefined) {return;}
+            this.input.keyboard.removeKey(key.keyCode);
+        });
         // Tween screen cover ..................................................
         const screen_cover = new ScreenCover({
             x: config.window.width*0.5,
@@ -847,7 +851,7 @@ class BaseScene extends Phaser.Scene {
 class OptionScene extends BaseScene {
     init({config, metatext, option_idx, on_release, context}) {
         this.init_args = {config, metatext, option_idx, on_release, context};
-        console.log(context);
+        //console.log(context);
         // parent_option_idx
     }
     create() {
@@ -864,7 +868,7 @@ class OptionScene extends BaseScene {
         // Events --------------------------------------------------------------
         let hover_idx = this.init_args.option_idx || 0;
         const event_emitter = new Phaser.Events.EventEmitter();
-        const bindings = this.init_args.context.keybindings;
+        const bindings = this.init_args.context.keybindings;        
         this.input.keyboard.addKey(bindings.step_up).on("down", () => {
             hover_idx = (hover_idx - 1 + options_board.config.nrows) % options_board.config.nrows;
             event_emitter.emit("change_hover");
@@ -891,7 +895,7 @@ class OptionScene extends BaseScene {
         options_board.foreach((row, col) => {
             // Get option data .................................................
             const option_idx = options_board.config.ncols*row + col;
-            const tile = options_board.tiles[row][col];
+            const tile = options_board.tiles[row][col];            
             // Manipulate option data ..........................................
             tile.setInteractive();
             new VisState(config.options_board.tile.state).inject({
@@ -925,6 +929,7 @@ class OptionScene extends BaseScene {
             event_emitter.on("change_hover", () => {
                 if (option_selected) return;
                 if (option_idx == hover_idx) {
+                    //console.log(tile.scene, this)  // EYE, TODO, WTF????                   
                     tile.state.set("hover");
                 }
                 else {
@@ -1073,6 +1078,7 @@ class LoadingScene extends Phaser.Scene {
         ).setOrigin(0.5);
     }
     create() {
+        this.scene.stop("LoadingScene");
         this.scene.start("MenuScene", {
             config: get_menu_config(),
             metatext: "Menu",
@@ -1096,6 +1102,7 @@ class MenuScene extends OptionScene {
             });
         };
         const switch_to = ({scene_name, scene_config}) => {
+            this.scene.stop("MenuScene");
             this.scene.start(scene_name, {
                 config: scene_config,
                 metatext: metatext,
@@ -1132,10 +1139,12 @@ class ControlsScene extends OptionScene {
     }
     change_scene({option_idx, metatext}) {
         this.init_args.context.control_idx = option_idx;
+        this.scene.stop("ControlsScene");
         this.scene.start("SetControlsScene", {
             config: this.init_args.config,//get_setcontrols_config(),
             metatext: metatext,
             on_release: (scene) => {
+                scene.scene.step("SetControlsScene");
                 scene.scene.start("ControlsScene", {
                     config: this.config,
                     metatext: this.metatext.text,
@@ -1221,10 +1230,12 @@ class ActScene extends OptionScene {
     }
     change_scene({option_idx, metatext}) {
         this.init_args.context.act_idx = option_idx;
+        this.scene.stop("ActScene");
         this.scene.start("LevelScene", {
             config: get_level_config({act_idx:option_idx}),
             metatext: metatext,
             on_release: (scene) => {
+                scene.scene.stop("LevelScene");
                 scene.scene.start("ActScene", {
                     config: this.config,
                     metatext: "Levels",
@@ -1243,6 +1254,7 @@ class LevelScene extends OptionScene {
     }
     change_scene({option_idx, metatext}) {
         this.init_args.context.level_idx = option_idx;
+        this.scene.stop("LevelScene");
         this.scene.start("GameScene", {
             config: get_game_config({
                 act_idx: this.init_args.context.act_idx,
@@ -1250,6 +1262,7 @@ class LevelScene extends OptionScene {
             }),
             metatext: metatext,
             on_release: (scene) => {
+                scene.scene.stop("GameScene");
                 scene.scene.start("LevelScene", {
                     metatext: this.metatext.text,
                     config: get_level_config({act_idx: this.init_args.context.act_idx}), // EYE
@@ -1527,7 +1540,7 @@ class GameScene extends BaseScene {
             }
         });
 
-        this.input.keyboard.on("keyup_ESC", 
+        this.input.keyboard.on("keyup_ESC", () => {
             exit_game();
         });
         // ---------------------------------------------------------------------
@@ -1547,7 +1560,7 @@ class Sprite extends Phaser.GameObjects.Sprite {
         this.setDepth(config.depth);
 
         this.event_emitter = new Phaser.Events.EventEmitter();
-
+        
         scene.add.existing(this);
     }
     set_width(width) {
@@ -1578,6 +1591,7 @@ class VisState {
         if (this.block) {return;}
 
         // Scale ---------------------------------------------------------------
+        //console.log(this.sprite.scene)
         this.sprite.scene.tweens.add({
             targets: this.sprite,
             scale: this.original_scale*this.config.map[state].scale,
