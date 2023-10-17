@@ -1,4 +1,5 @@
 const NOTES = [
+    "Holding direction button repeats step.",
     "Menues have sound.",
     "Use explicit random seed when shuffling - this way players can compete in minimizing moves.",
     "Structure style: scientific paper/presentation.",
@@ -48,6 +49,7 @@ function get_menu_config() {
         },
         time: {
             select: 1000,
+            fadein: 500,
         },
         options: options,
         options_board: options_board,
@@ -124,6 +126,7 @@ function get_controls_config() {
         },
         time: {
             select: 1000,
+            fadein: 500,
         },
         options: options,
         options_board: options_board,
@@ -139,6 +142,7 @@ function get_setcontrols_config() {
         },
         time: {
             select: 1000,
+            fadein: 500,
         },
     };
     return config;
@@ -186,6 +190,7 @@ function get_editor_config() {
         },
         time: {
             select: 1000,
+            fadein: 500,
         },
         options: options,
         options_board: options_board,
@@ -580,6 +585,7 @@ function get_act_config() {
         },
         time: {
             select: 1000,
+            fadein: 500,
         },
         options: acts,
         options_board: act_board,
@@ -624,6 +630,7 @@ function get_level_config({act_idx}) {
         },
         time: {
             select: 1000,
+            fadein: 500,
         },
         options: levels,
         options_board: level_board,
@@ -704,7 +711,7 @@ function get_game_config({act_idx, level_idx}) {
             image: "agent",
             width: tile_board.tile.width*0.8,
             tint: tile_board.tile.tint,
-            depth: tile_board.tile.depth+1,
+            depth: 0,//tile_board.tile.depth+1,
             state: {
                 time: {
                     scale: tile_board.tile.state.time.scale,
@@ -787,8 +794,15 @@ function get_default_keybindings() {
 }
 
 class BaseScene extends Phaser.Scene {
-    init({config, metatext, on_release, context}) {
-        this.init_args = {config, metatext, on_release, context};
+    init({config, metatext, on_release, context, fadein_delay, metatext_depth}) {
+        if (fadein_delay == undefined) {
+            fadein_delay = 0;
+        }
+        if (metatext_depth == undefined) {
+            metatext_depth = 2;
+        }
+        
+        this.init_args = {config, metatext, on_release, context, fadein_delay, metatext_depth};
         //console.log(context);
     }
     create() {                
@@ -810,8 +824,8 @@ class BaseScene extends Phaser.Scene {
         screen_cover.tween({
             targets: screen_cover,
             alpha: 0.0,
-            ease: "Quint.Out",
-            duration: config.time.select,
+            ease: "Quint.InOut",
+            duration: config.time.fadein + this.init_args.fadein_delay,
         });
         // Make metatext .......................................................
         this.metatext = this.add.text(
@@ -822,7 +836,7 @@ class BaseScene extends Phaser.Scene {
                 font: "bold 70px BaseFont", // TODO: Hardcoded values, move to config
                 fill: "#ffffff",
             }
-        ).setOrigin(0.5).setDepth(2);
+        ).setOrigin(0.5).setDepth(this.init_args.metatext_depth);
 
         this.on_release = () => {
             if (!this.init_args.on_release) {return;}
@@ -837,20 +851,21 @@ class BaseScene extends Phaser.Scene {
                 targets: screen_cover,
                 alpha: 1.0,
                 ease: "Quint.InOut",
-                duration: config.time.select*0.5,
+                duration: config.time.fadein,
                 onComplete: ()  => {
                     this.init_args.on_release(this);
                 },
             });
-        };        
+        };
         this.input.keyboard.on("keydown_ESC", (e) => {
             this.on_release();
         });
     }
 }
 class OptionScene extends BaseScene {
-    init({config, metatext, option_idx, on_release, context}) {
-        this.init_args = {config, metatext, option_idx, on_release, context};
+    init({config, metatext, on_release, context, option_idx, fadein_delay, metatext_depth}) {
+        super.init({config, metatext, on_release, context, fadein_delay, metatext_depth});        
+        this.init_args.option_idx = option_idx;
         //console.log(context);
         // parent_option_idx
     }
@@ -859,12 +874,13 @@ class OptionScene extends BaseScene {
         const config = this.config;
         const metatext = this.metatext;      
         // Make options board --------------------------------------------------
-        const options_board = new Board({
+        this.options_board = new Board({
             scene: this,
             x: config.window.width*0.4, // TODO: Hardcoded values
             y: config.window.height*0.5,
             config: config.options_board,
         });
+        const options_board = this.options_board;
         // Events --------------------------------------------------------------
         let hover_idx = this.init_args.option_idx || 0;
         const event_emitter = new Phaser.Events.EventEmitter();
@@ -989,7 +1005,7 @@ class OptionScene extends BaseScene {
                 screen_cover.tween({
                     targets: screen_cover,
                     alpha: 1.0,
-                    ease: "Quint.Out",
+                    ease: "Quint.InOut", // TODO: Out?
                     duration: config.time.select*0.9,
                 });
                 // Tween camera ................................................
@@ -1040,7 +1056,7 @@ class OptionScene extends BaseScene {
                 option_idx_text.scale = tile.scale*original_option_idx_text_scale*3; // TODO: Hardcoded number 3?
                 option_name_text.setTint(tile.current_tint);
 
-                if (option_selected) {return;}
+                if (option_selected) {return;} // TODO: Is this needed?
                 option_name_text.scale = tile.scale*original_option_idx_text_scale*3;
             });
             // .................................................................
@@ -1079,12 +1095,102 @@ class LoadingScene extends Phaser.Scene {
     }
     create() {
         this.scene.stop("LoadingScene");
-        this.scene.start("MenuScene", {
-            config: get_menu_config(),
-            metatext: "Menu",
-            context: {
-                keybindings: get_default_keybindings(),
+        this.scene.start("IntroScene");
+        //this.scene.start("MenuScene", {
+        //    config: get_menu_config(),
+        //    metatext: "Menu",
+        //    context: {
+        //       keybindings: get_default_keybindings(),
+        //   },
+        //});
+    }
+}
+class IntroScene extends Phaser.Scene {
+    constructor() {
+        super({ key: "IntroScene" });
+    }
+    create() {
+        const config = get_act_config();
+        
+        const isomorpheus_text = this.add.text(
+            0.5*config.window.width,
+            0.45*config.window.height,
+            "Isomorpheus",
+            {
+                font: "bold 70px BaseFont",
+                fill: "#ffffff",
+            }
+        ).setOrigin(0.5);
+
+        const presents_text = this.add.text(
+            0.5*config.window.width,
+            0.55*config.window.height,
+            "presents",
+            {
+                font: "bold 70px BaseFont",
+                fill: "#ffffff",
+            }
+        ).setOrigin(0.5);
+
+        const title_text = this.add.text(            
+            0.5*config.window.width,
+            0.5*config.window.height,
+            "BALL TWISTER",
+            {
+                font: "bold 100px BaseFont",
+                fill: "#ffffff",
+            }
+        ).setOrigin(0.5).setAlpha(0.0);        
+
+        const release_scene = () => {
+            this.scene.stop("IntroScene");
+            this.scene.start("MenuScene", {
+                config: get_menu_config(),
+                metatext: "Menu",
+                context: {
+                    keybindings: get_default_keybindings(),
+                },
+                fadein_delay: 1000,
+                metatext_depth: 0,
+            });
+        };
+        
+        this.tweens.add({
+            targets: [isomorpheus_text, presents_text],
+            alpha: {from: 0, to: 1},
+            ease: "Quint.InOut",
+            duration: 2000,
+            onComplete: () => {
+                this.tweens.add({
+                    targets: [isomorpheus_text, presents_text],
+                    alpha: {from: 1, to: 0},
+                    ease: "Quint.InOut",
+                    duration: 2000,
+                    onComplete: () => {
+                        this.tweens.add({
+                            targets: title_text,
+                            alpha: {from: 0, to: 1},
+                            ease: "Quint.InOut",
+                            duration: 2000,
+                            onComplete: () => {
+                                this.tweens.add({
+                                    targets: title_text,
+                                    alpha: {from: 1, to: 0},
+                                    ease: "Quint.InOut",
+                                    duration: 2000,
+                                    onComplete: () => {
+                                        release_scene();
+                                    },
+                                });
+                            },
+                        });
+                    },
+                });
             },
+        });
+
+        this.input.keyboard.on("keydown", () => {
+            release_scene();
         });
     }
 }
@@ -1092,7 +1198,7 @@ class MenuScene extends OptionScene {
     constructor() {
         super({ key: "MenuScene" });
     }
-    change_scene({option_idx, metatext}) {        
+    change_scene({option_idx, metatext}) {
         const on_release = (scene) => {
             scene.scene.start("MenuScene", {
                 config: this.config,
@@ -1159,7 +1265,32 @@ class ControlsScene extends OptionScene {
     create() {
         super.create();
         const config = this.config;
-        const metatext = this.metatext;        
+        const metatext = this.metatext;
+
+        const key_map = get_key_map();
+        this.options_board.foreach((row, col) => {
+            const tile = this.options_board.tiles[row][col];
+            const key = config.options[row].key;
+            const key_code = this.init_args.context.keybindings[key];
+            const key_name = key_map[key_code];
+            //console.log(key_name);
+
+            const key_name_text = this.add.text(
+                tile.x + 6*tile.config.width,
+                tile.y,
+                "[" + key_name + "]",
+                {
+                    font: "bold 70px BaseFont", // TODO: Hardcoded values, move to config
+                    fill: "#ffffff",
+                }
+            ).setOrigin(0.0, 0.5);
+
+            const original_key_name_text_scale = key_name_text.scale;
+            tile.event_emitter.on("preUpdate", (time, delta) => { // TODO: Duplication from OptionScene
+                key_name_text.setTint(tile.current_tint);               
+                key_name_text.scale = tile.scale*original_key_name_text_scale*3;
+            });
+        });
     }
 }
 class SetControlsScene extends BaseScene {
@@ -1268,10 +1399,11 @@ class LevelScene extends OptionScene {
                     config: get_level_config({act_idx: this.init_args.context.act_idx}), // EYE
                     option_idx: option_idx,
                     on_release: this.init_args.on_release,
-                    context: this.init_args.context,
+                    context: this.init_args.context,                    
                 });
             },
             context: this.init_args.context,
+            //fadein_delay: 1000, // TODO: Does not do anything for some reason
         });
     }
 }
@@ -1340,39 +1472,54 @@ class GameScene extends BaseScene {
         let playing = false;
         let viewing_correct = false;
         let shuffling = false;
-        // Animate boards ------------------------------------------------------
-        ball_board.foreach((row, col) => {
-                const tile = ball_board.tiles[row][col];
-                const original_scale = tile.scale;
-                this.tweens.add({
-                    targets: tile,
-                    scale: {from: original_scale, to: original_scale*0.8},
-                    ease: "Quint.Out",
-                    duration: 500,
-                    onComplete: () => {
-                        this.tweens.add({
-                            targets: tile,
-                            scale: {from: original_scale*0.8, to: original_scale},
-                            ease: "Quint.Out",
-                            duration: 1000,
-                        });
-                    }
+        // Screen cover and board animation ------------------------------------
+        const screen_cover = new ScreenCover({
+            x: config.window.width*0.5,
+            y: config.window.height*0.5,
+            scene: this,
+        }).setDepth(1);
+        screen_cover.setTint(config.window.color);
+        screen_cover.setAlpha(1);
+        screen_cover.tween({
+            targets: screen_cover,
+            alpha: 0.0,
+            ease: "Quint.InOut",
+            duration: 400,
+            onComplete: () => {
+                ball_board.foreach((row, col) => {
+                    const tile = ball_board.tiles[row][col];
+                    const original_scale = tile.scale;
+                    this.tweens.add({
+                        targets: tile,
+                        scale: {from: original_scale, to: original_scale*0.8},
+                        ease: "Quint.Out",
+                        duration: 500,
+                        onComplete: () => {
+                            this.tweens.add({
+                                targets: tile,
+                                scale: {from: original_scale*0.8, to: original_scale},
+                                ease: "Quint.Out",
+                                duration: 1000,
+                            });
+                        }
+                    });
+                }); // TODO: Also used in victory and keydown_R, unify...
+                tile_board.foreach((row, col) => {
+                    const tile = tile_board.tiles[row][col];
+                    tile.setInteractive();
+                    tile.state.set(correct_state[row][col]);
+                    this.time.addEvent({
+                        delay: 600,
+                        callback: () => {
+                            tile.state.set("default");
+                        },
+                    });
+                    tile.on("pointerover", () => {
+                        on_step({row: row - cursor.row, col: col - cursor.col});
+                    });
                 });
-        }); // TODO: Also used in victory and keydown_R, unify...
-        tile_board.foreach((row, col) => {
-            const tile = tile_board.tiles[row][col];
-            tile.setInteractive();
-            tile.state.set(correct_state[row][col]);
-            this.time.addEvent({
-                    delay: 500,
-                    callback: () => {
-                        tile.state.set("default");
-                    },
-                });
-            tile.on("pointerover", () => {
-                on_step({row: row - cursor.row, col: col - cursor.col});
-            });
-        });
+            }, // Animate boards
+        });        
         // Events --------------------------------------------------------------
         const on_step = (offset) => {
             if (!playing) {return;}
@@ -1418,7 +1565,7 @@ class GameScene extends BaseScene {
             screen_cover.tween({
                 targets: screen_cover,
                 alpha: 1.0,
-                ease: "Quint.Out",
+                ease: "Quint.InOut", // TODO: Out?
                 duration: config.time.select,
                 onComplete: () => {
                     this.init_args.on_release(this);
@@ -1800,6 +1947,110 @@ function loadFont(name, url) {
         return error;
     });
 }
+function get_key_map() {
+    const key_codes = {
+        8: "Backspace",
+        9: "Tab",
+        13: "Enter",
+        16: "Shift",
+        17: "Ctrl",
+        18: "Alt",
+        19: "Pause/Break",
+        20: "Caps Lock",
+        27: "Escape",
+        32: "Space",
+        33: "Page Up",
+        34: "Page Down",
+        35: "End",
+        36: "Home",
+        37: "Left Arrow",
+        38: "Up Arrow",
+        39: "Right Arrow",
+        40: "Down Arrow",
+        45: "Insert",
+        46: "Delete",
+        48: "0",
+        49: "1",
+        50: "2",
+        51: "3",
+        52: "4",
+        53: "5",
+        54: "6",
+        55: "7",
+        56: "8",
+        57: "9",
+        65: "A",
+        66: "B",
+        67: "C",
+        68: "D",
+        69: "E",
+        70: "F",
+        71: "G",
+        72: "H",
+        73: "I",
+        74: "J",
+        75: "K",
+        76: "L",
+        77: "M",
+        78: "N",
+        79: "O",
+        80: "P",
+        81: "Q",
+        82: "R",
+        83: "S",
+        84: "T",
+        85: "U",
+        86: "V",
+        87: "W",
+        88: "X",
+        89: "Y",
+        90: "Z",
+        91: "Windows Key / Left ⌘ / Chromebook Search key",
+        92: "Right Window Key",
+        93: "Windows Menu / Right ⌘",
+        96: "Numpad 0",
+        97: "Numpad 1",
+        98: "Numpad 2",
+        99: "Numpad 3",
+        100: "Numpad 4",
+        101: "Numpad 5",
+        102: "Numpad 6",
+        103: "Numpad 7",
+        104: "Numpad 8",
+        105: "Numpad 9",
+        106: "Multiply",
+        107: "Add",
+        109: "Subtract",
+        110: "Decimal Point",
+        111: "Divide",
+        112: "F1",
+        113: "F2",
+        114: "F3",
+        115: "F4",
+        116: "F5",
+        117: "F6",
+        118: "F7",
+        119: "F8",
+        120: "F9",
+        121: "F10",
+        122: "F11",
+        123: "F12",
+        144: "Num Lock",
+        145: "Scroll Lock",
+        186: "Semi-Colon",
+        187: "Equal Sign",
+        188: "Comma",
+        189: "Dash",
+        190: "Period",
+        191: "Forward Slash",
+        192: "Grave Accent",
+        219: "Open Bracket",
+        220: "Back Slash",
+        221: "Close Braket",
+        222: "Single Quote"
+    };
+    return key_codes;
+}
 // Run /////////////////////////////////////////////////////////////////////////
 const GLOBAL_CONFIG = get_menu_config();
 var game = new Phaser.Game({
@@ -1807,7 +2058,7 @@ var game = new Phaser.Game({
     width: GLOBAL_CONFIG.window.width,
     height: GLOBAL_CONFIG.window.height,
     backgroundColor: GLOBAL_CONFIG.window.color,
-    scene: [LoadingScene,
+    scene: [LoadingScene, IntroScene,
             MenuScene,
             ControlsScene, SetControlsScene, EditorScene, ActScene,
             LevelScene, GameScene],
