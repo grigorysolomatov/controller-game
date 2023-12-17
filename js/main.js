@@ -1326,8 +1326,17 @@ class SetControlsScene extends BaseScene {
             }
         ).setOrigin(0.5);
         // Events --------------------------------------------------------------
+        let keybindings = this.init_args.context.keybindings;
         this.input.keyboard.on("keydown", (e) => {
             const control_idx = this.init_args.context.control_idx;
+
+            // Don't allow already used bindings ...............................
+            for (let taken_key in keybindings) {
+                const taken_key_code = keybindings[taken_key]
+                if (taken_key_code == e.keyCode) {return;}
+            }
+            // .................................................................
+            
             const control_key = config.options[control_idx].key;
             this.init_args.context.keybindings[control_key] = e.keyCode,
             this.on_release();
